@@ -1,0 +1,178 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --foreground-rgb: 0, 0, 0;
+  --background-start-rgb: 255, 255, 255;
+  --background-end-rgb: 255, 255, 255;
+}
+
+body {
+  color: black;
+  background: white;
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .perspective-500 {
+    perspective: 500px;
+  }
+
+  .backface-hidden {
+    backface-visibility: hidden;
+  }
+
+  .preserve-3d {
+    transform-style: preserve-3d;
+  }
+
+  .rotate-y-180 {
+    transform: rotateY(180deg);
+  }
+
+  .transform-style-3d {
+    transform-style: preserve-3d;
+  }
+}
+
+@layer components {
+  .neo-card {
+    background-color: white;
+    border: 4px solid black;
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    box-shadow: 5px 5px 0px 0px rgba(0, 0, 0, 1);
+    color: black;
+  }
+
+  .neo-heading {
+    font-size: 3rem;
+    line-height: 1;
+    font-weight: 900;
+    color: black;
+  }
+
+  .neo-subheading {
+    font-size: 2.25rem;
+    line-height: 2.5rem;
+    font-weight: 900;
+    color: black;
+  }
+
+  .glass-card {
+    background-color: rgba(0, 35, 135, 0.8);
+    backdrop-filter: blur(8px);
+    border: 4px solid black;
+    border-radius: 0.75rem;
+    box-shadow: 5px 5px 0px 0px rgba(0, 0, 0, 1);
+    color: white;
+    padding: 1.5rem;
+  }
+}
+
+/* Badge styles */
+.neo-badge {
+  background-color: #c1ff00;
+  color: black;
+  font-size: 0.75rem;
+  font-weight: bold;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.375rem;
+  border: 2px solid black;
+}
+
+/* Button styles */
+.neo-button {
+  background-color: #c1ff00;
+  color: black;
+  font-weight: bold;
+  padding: 0.75rem 1.5rem;
+  border: 4px solid black;
+  border-radius: 0.75rem;
+  box-shadow: 3px 3px 0px 0px rgba(0, 0, 0, 1);
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.neo-button:hover {
+  transform: translateY(1px) translateX(1px);
+  box-shadow: 2px 2px 0px 0px rgba(0, 0, 0, 1);
+}
+
+.neo-button:active {
+  transform: translateY(3px) translateX(3px);
+  box-shadow: none;
+}
+
+.neo-button-outline {
+  background-color: white;
+  color: black;
+  font-weight: bold;
+  padding: 0.75rem 1.5rem;
+  border: 4px solid black;
+  border-radius: 0.75rem;
+  box-shadow: 3px 3px 0px 0px rgba(0, 0, 0, 1);
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.neo-button-outline:hover {
+  transform: translateY(1px) translateX(1px);
+  box-shadow: 2px 2px 0px 0px rgba(0, 0, 0, 1);
+}
+
+.neo-button-outline:active {
+  transform: translateY(3px) translateX(3px);
+  box-shadow: none;
+}
+
+/* Add these styles to ensure proper visibility for the draggable players */
+.draggable-player {
+  cursor: grab;
+  user-select: none;
+  touch-action: none;
+  z-index: 10;
+  transition: transform 0.1s;
+}
+
+.draggable-player:active {
+  cursor: grabbing;
+  z-index: 20;
+}
+
+/* Improve visibility for text labels */
+.text-label {
+  background-color: white;
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 1px solid black;
+  display: inline-block;
+}
+
+/* Improve visibility for incorrect answers */
+.incorrect-answer {
+  background-color: #ff5757 !important;
+  color: white !important;
+  border-color: black !important;
+}
+
+.incorrect-answer-icon {
+  color: white;
+  stroke-width: 3px;
+  filter: drop-shadow(0px 0px 1px black);
+}
+
+.correct-answer-icon {
+  color: black;
+  stroke-width: 3px;
+}
