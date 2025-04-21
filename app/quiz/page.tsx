@@ -291,29 +291,31 @@ export default function QuizPage() {
               <div key={index} className="neo-card bg-white">
                 <p className="font-bold text-lg mb-4">{item.term}</p>
                 <div className="grid grid-cols-3 gap-3">
-                  {item.options.map((option, optIndex) => (
-                    <button
-                      key={optIndex}
-                      className={`neo-button-outline ${
-                        answers[`${currentQuestion}-${index}`] === option ? "bg-[#c1ff00] border-black" : ""
-                      }`}
-                      onClick={() => {
-                        setAnswers({
-                          ...answers,
-                          [`${currentQuestion}-${index}`]: option,
-                        })
-                      }}
-                    >
-                      {option}
-                    </button>
-                  ))}
+                {item.options.map((option, optIndex) => {
+                    const isSelected = answers[`${currentQuestion}-${index}`] === option
+                    return (
+                      <button
+                        key={optIndex}
+                        className={`neo-button-outline ${isSelected ? "selected" : ""}`}
+                        onClick={() =>
+                          setAnswers({ ...answers, [`${currentQuestion}-${index}`]: option })
+                        }
+                      >
+                        {option}
+                      </button>
+                    )
+                })}
                 </div>
               </div>
             ))}
           </div>
 
-          {showExplanation && (
-            <div className="neo-card bg-[#c1ff00] mt-6">
+          {showExplanation && (() => {
+            const isCorrect = question.items.every(
+              (_, i) => answers[`${currentQuestion}-${i}`] === question.items[i].correctAnswer
+            )
+            return (
+              <div className={`neo-card mt-6 ${isCorrect ? 'bg-[#c1ff00]' : 'incorrect-answer'}`}>
               <div className="flex items-start gap-3">
                 <div className="mt-1">
                   {question.items.every(
@@ -350,7 +352,8 @@ export default function QuizPage() {
                 </div>
               </div>
             </div>
-          )}
+            )
+          })()}
         </div>
       )
     }
@@ -364,16 +367,16 @@ export default function QuizPage() {
           </div>
 
           <div className="grid grid-cols-3 gap-3">
-            {question.options.map((option, index) => (
-              <button
-                key={index}
-                className={`neo-button-outline ${
-                  answers[currentQuestion] === option ? "bg-[#c1ff00] border-black" : ""
-                }`}
-                onClick={() => handleSingleAnswer(option)}
-              >
-                {option}
-              </button>
+            {question.options.map((option, idx) => (
+            <button
+              key={idx}
+              className={`neo-button-outline ${
+                answers[currentQuestion] === option ? "selected" : ""
+              }`}
+              onClick={() => handleSingleAnswer(option)}
+            >
+              {option}
+            </button>
             ))}
           </div>
 
@@ -387,8 +390,10 @@ export default function QuizPage() {
             />
           </div>
 
-          {showExplanation && (
-            <div className="neo-card bg-[#c1ff00] mt-6">
+          {showExplanation && (() => {
+            const isCorrect = answers[currentQuestion] === question.correctAnswer
+            return (
+              <div className={`neo-card mt-6 ${isCorrect ? 'bg-[#c1ff00]' : 'incorrect-answer'}`}>
               <div className="flex items-start gap-3">
                 <div className="mt-1">
                   {answers[currentQuestion] === question.correctAnswer ? (
@@ -421,7 +426,8 @@ export default function QuizPage() {
                 </div>
               </div>
             </div>
-          )}
+            )
+          })()}
         </div>
       )
     }
@@ -437,28 +443,38 @@ export default function QuizPage() {
           </div>
 
           <div className="space-y-3">
-            {question.options.map((option, index) => (
-              <button
-                key={index}
-                className={`neo-button-outline w-full text-left flex items-center gap-3 ${
-                  selectedAnswers.includes(option) ? "bg-[#c1ff00] border-black" : ""
-                }`}
-                onClick={() => handleMultiAnswer(option, !selectedAnswers.includes(option))}
-              >
-                <div
-                  className={`w-6 h-6 flex-shrink-0 border-4 border-black rounded-md ${
-                    selectedAnswers.includes(option) ? "bg-black" : "bg-white"
+            {question.options.map((option, idx) => {
+              const isSelected = multiAnswers[currentQuestion]?.includes(option)
+              return (
+                <button
+                  key={idx}
+                  className={`neo-button-outline w-full text-left flex items-center gap-3 ${
+                    isSelected ? "selected" : ""
                   }`}
+                  onClick={() => handleMultiAnswer(option, !isSelected)}
                 >
-                  {selectedAnswers.includes(option) && <CheckCircle className="text-white" size={16} />}
-                </div>
-                <span>{option}</span>
-              </button>
-            ))}
+                  <div
+                    className={`w-6 h-6 flex-shrink-0 border-4 border-black rounded-md ${
+                      isSelected ? "bg-black" : "bg-white"
+                    }`}
+                  >
+                    {isSelected && <CheckCircle className="text-white" size={16} />}
+                  </div>
+                  <span className="text-black">{option}</span>
+                </button>
+              )
+            })}
+
           </div>
 
-          {showExplanation && (
-            <div className="neo-card bg-[#c1ff00] mt-6">
+          {showExplanation && (() => {
+            const selected = multiAnswers[currentQuestion] || []
+            const correct = question.correctAnswers as string[]
+            const isCorrect =
+              selected.length === correct.length &&
+              selected.every(a => correct.includes(a))
+            return (
+            <div className={`neo-card mt-6 ${isCorrect ? 'bg-[#c1ff00]' : 'incorrect-answer'}`}>
               <div className="flex items-start gap-3">
                 <div className="mt-1">
                   {selectedAnswers.length === (question.correctAnswers as string[]).length &&
@@ -489,7 +505,8 @@ export default function QuizPage() {
                 </div>
               </div>
             </div>
-          )}
+            )
+          })()}
         </div>
       )
     }

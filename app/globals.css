@@ -72,6 +72,10 @@ body {
     color: white;
     padding: 1.5rem;
   }
+
+  .neo-button-outline.selected {
+    @apply bg-blue-200 border-black;
+  }
 }
 
 /* Badge styles */
