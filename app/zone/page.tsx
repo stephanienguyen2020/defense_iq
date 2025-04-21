@@ -1,27 +1,172 @@
 "use client"
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
 import { ChevronLeft, ChevronRight, Play, Info, Trophy, X, Check } from "lucide-react"
 import Navbar from "@/components/navbar"
 
-// Interactive player component for drag and drop
+// Interactive player component for drag and drop with zone restrictions
 function DraggablePlayer({
   color,
   position,
   label,
+  zoneArea,
 }: {
   color: string
   position: { x: number; y: number }
   label?: string
+  zoneArea: 
+    // Main diagram zones
+    | "topLeft" | "topRight" | "bottomLeft" | "bottomCenter" | "bottomRight"
+    // 2-3 zone
+    | "top2-3Left" | "top2-3Right" | "bottom2-3Left" | "bottom2-3Center" | "bottom2-3Right"
+    // 3-2 zone
+    | "top3-2Left" | "top3-2Center" | "top3-2Right" | "bottom3-2Left" | "bottom3-2Right"
+    // 1-3-1 zone
+    | "top" | "middleLeft" | "middleCenter" | "middleRight" | "bottom"
 }) {
+  const playerRef = useRef<HTMLDivElement>(null)
+  const [playerPosition, setPlayerPosition] = useState(position)
+  const [isDragging, setIsDragging] = useState(false)
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 })
+
+  // Define zone boundaries (in percentages)
+  const zoneBoundaries = {
+    // Main diagram zones
+    topLeft: { minX: 0, maxX: 45, minY: 0, maxY: 45 },
+    topRight: { minX: 50, maxX: 95, minY: 0, maxY: 45 },
+    bottomLeft: { minX: 0, maxX: 29, minY: 50, maxY: 100 },
+    bottomCenter: { minX: 33, maxX: 67, minY: 50, maxY: 100 },
+    bottomRight: { minX: 67, maxX: 90, minY: 50, maxY: 100 },
+    
+    // 2-3 zone specific
+    "top2-3Left": { minX: 0, maxX: 45, minY: 0, maxY: 50 },
+    "top2-3Right": { minX: 50, maxX: 90, minY: 0, maxY: 50 },
+    "bottom2-3Left": { minX: 0, maxX: 29, minY: 55, maxY: 90 },
+    "bottom2-3Center": { minX: 33, maxX: 67, minY: 55, maxY: 90 },
+    "bottom2-3Right": { minX: 67, maxX: 90, minY: 55, maxY: 90 },
+    
+    // 3-2 zone specific
+    "top3-2Left": { minX: 0, maxX: 29, minY: 0, maxY: 50 },
+    "top3-2Center": { minX: 33, maxX: 60, minY: 0, maxY: 50 },
+    "top3-2Right": { minX: 67, maxX: 90, minY: 0, maxY: 50 },
+    "bottom3-2Left": { minX: 0, maxX: 45, minY: 55, maxY: 90 },
+    "bottom3-2Right": { minX: 50, maxX: 90, minY: 55, maxY: 90 },
+    
+    // 1-3-1 zone specific
+    "top": { minX: 0, maxX: 90, minY: 0, maxY: 45 },
+    "middleLeft": { minX: 0, maxX: 33, minY: 50, maxY: 75 },
+    "middleCenter": { minX: 33, maxX: 60, minY: 50, maxY: 75 },
+    "middleRight": { minX: 67, maxX: 90, minY: 50, maxY: 75 },
+    "bottom": { minX: 0, maxX: 90, minY: 75, maxY: 90 }
+  };
+
+  const currentZone = zoneBoundaries[zoneArea];
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    e.preventDefault()
+    if (playerRef.current) {
+      const rect = playerRef.current.getBoundingClientRect()
+      const parentRect = playerRef.current.parentElement?.getBoundingClientRect()
+      
+      if (parentRect) {
+        setDragOffset({
+          x: e.clientX - rect.left,
+          y: e.clientY - rect.top
+        })
+        setIsDragging(true)
+      }
+    }
+  }
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (playerRef.current && e.touches[0]) {
+      const rect = playerRef.current.getBoundingClientRect()
+      const parentRect = playerRef.current.parentElement?.getBoundingClientRect()
+      
+      if (parentRect) {
+        setDragOffset({
+          x: e.touches[0].clientX - rect.left,
+          y: e.touches[0].clientY - rect.top
+        })
+        setIsDragging(true)
+      }
+    }
+  }
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (isDragging && playerRef.current) {
+        const parentRect = playerRef.current.parentElement?.getBoundingClientRect()
+        if (parentRect) {
+          // Calculate position as percentage of parent container
+          const newX = ((e.clientX - parentRect.left - dragOffset.x) / parentRect.width) * 100
+          const newY = ((e.clientY - parentRect.top - dragOffset.y) / parentRect.height) * 100
+
+          // Constrain to zone boundaries
+          const constrainedX = Math.max(currentZone.minX, Math.min(newX, currentZone.maxX))
+          const constrainedY = Math.max(currentZone.minY, Math.min(newY, currentZone.maxY))
+
+          setPlayerPosition({ x: constrainedX, y: constrainedY })
+        }
+      }
+    }
+
+    const handleTouchMove = (e: TouchEvent) => {
+      if (isDragging && e.touches[0] && playerRef.current) {
+        e.preventDefault() // Prevent scrolling while dragging
+        const parentRect = playerRef.current.parentElement?.getBoundingClientRect()
+        if (parentRect) {
+          // Calculate position as percentage of parent container
+          const newX = ((e.touches[0].clientX - parentRect.left - dragOffset.x) / parentRect.width) * 100
+          const newY = ((e.touches[0].clientY - parentRect.top - dragOffset.y) / parentRect.height) * 100
+
+          // Constrain to zone boundaries
+          const constrainedX = Math.max(currentZone.minX, Math.min(newX, currentZone.maxX))
+          const constrainedY = Math.max(currentZone.minY, Math.min(newY, currentZone.maxY))
+
+          setPlayerPosition({ x: constrainedX, y: constrainedY })
+        }
+      }
+    }
+
+    const handleMouseUp = () => {
+      setIsDragging(false)
+    }
+
+    const handleTouchEnd = () => {
+      setIsDragging(false)
+    }
+
+    if (isDragging) {
+      window.addEventListener("mousemove", handleMouseMove)
+      window.addEventListener("mouseup", handleMouseUp)
+      window.addEventListener("touchmove", handleTouchMove, { passive: false })
+      window.addEventListener("touchend", handleTouchEnd)
+    }
+
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove)
+      window.removeEventListener("mouseup", handleMouseUp)
+      window.removeEventListener("touchmove", handleTouchMove)
+      window.removeEventListener("touchend", handleTouchEnd)
+    }
+  }, [isDragging, dragOffset, currentZone])
+
   return (
     <div
-      className={`absolute w-4 h-4 ${color} border-2 border-black rounded-full flex items-center justify-center`}
+      ref={playerRef}
+      className={`absolute w-6 h-6 ${color} border-2 border-black rounded-full cursor-move shadow-md flex items-center justify-center`}
       style={{
-        left: `${position.x}%`,
-        top: `${position.y}%`,
+        left: `${playerPosition.x}%`,
+        top: `${playerPosition.y}%`,
+        touchAction: "none",
+        zIndex: isDragging ? 10 : 1,
+        transition: isDragging ? "none" : "box-shadow 0.2s",
+        boxShadow: isDragging ? "0 0 0 4px rgba(255, 87, 87, 0.5)" : "",
       }}
+      onMouseDown={handleMouseDown}
+      onTouchStart={handleTouchStart}
     >
-      {label && <span className="font-bold text-[8px]">{label}</span>}
+      {label && <span className="font-bold text-xs text-white">{label}</span>}
     </div>
   )
 }
@@ -34,6 +179,7 @@ export default function ZonePage() {
   const [showZoneAnswer, setShowZoneAnswer] = useState(false)
   const [showConcernAnswer, setShowConcernAnswer] = useState(false)
   const [activeZoneArea, setActiveZoneArea] = useState<string | null>(null)
+  const [activeZoneType, setActiveZoneType] = useState<"2-3" | "3-2" | "1-3-1">("2-3")
   const courtRef = useRef<HTMLDivElement>(null)
 
   const handleZoneSelect = (zone: string) => {
@@ -65,28 +211,59 @@ export default function ZonePage() {
               area.
             </p>
 
-            <div className="relative h-80 neo-card bg-gray-100 my-8">
-              <div className="absolute inset-0 flex flex-col items-center justify-center p-4">
-                <div className="text-center mb-4">
-                  <div className="font-bold text-black">INTERACTIVE ZONE DIAGRAM</div>
-                </div>
-                <div className="w-48 h-48 mx-auto bg-[#3366cc] border-4 border-black rounded-full flex items-center justify-center relative">
-                  <div className="w-32 h-32 bg-white border-4 border-black rounded-full flex items-center justify-center relative">
-                    {/* Top zone defenders */}
-                    <DraggablePlayer color="bg-[#ff5757]" position={{ x: 30, y: 15 }} />
-                    <DraggablePlayer color="bg-[#ff5757]" position={{ x: 70, y: 15 }} />
-
-                    {/* Bottom zone defenders */}
-                    <DraggablePlayer color="bg-[#ff5757]" position={{ x: 15, y: 85 }} />
-                    <DraggablePlayer color="bg-[#ff5757]" position={{ x: 50, y: 85 }} />
-                    <DraggablePlayer color="bg-[#ff5757]" position={{ x: 85, y: 85 }} />
-
-                    {/* Zone areas - semi-transparent */}
-                    <div className="absolute w-full h-1/2 top-0 border-b-2 border-dashed border-black opacity-30"></div>
-                    <div className="absolute w-1/3 h-1/2 bottom-0 left-0 border-r-2 border-dashed border-black opacity-30"></div>
-                    <div className="absolute w-1/3 h-1/2 bottom-0 right-0 border-l-2 border-dashed border-black opacity-30"></div>
+            <div className="flex flex-col md:flex-row gap-4 my-8">
+              {/* Court container - reduced width */}
+              <div className="relative h-80 neo-card bg-gray-100 md:w-[370px]">
+                <div 
+                  className="absolute inset-0 flex flex-col items-center justify-center p-4"
+                  style={{
+                    backgroundImage: 'url("/court.jpg")',
+                    backgroundSize: 'contain',
+                    backgroundPosition: 'center',
+                    backgroundRepeat: 'no-repeat',
+                  }}
+                >
+                  <div className="text-center mb-4">
+                    <div className="font-bold text-black bg-white px-2 py-1 rounded-md border border-black inline-block">
+                      INTERACTIVE ZONE DIAGRAM
+                    </div>
                   </div>
+                  <div className="w-full h-full relative">
+                    {/* Zone dividers */}
+                    <div className="absolute w-full h-1/2 top-0 border-b-2 border-dashed border-black"></div>
+                    <div className="absolute w-1/3 h-1/2 bottom-0 left-0 border-r-2 border-dashed border-black"></div>
+                    <div className="absolute w-1/3 h-1/2 bottom-0 right-0 border-l-2 border-dashed border-black"></div>
+                    <div className="absolute w-1/2 h-1/2 top-0 right-0 border-l-2 border-dashed border-black"></div>
+                    
+                    {/* Zone players */}
+                    <DraggablePlayer color="bg-[#ff5757]" position={{ x: 25, y: 25 }} label="1" zoneArea="topLeft" />
+                    <DraggablePlayer color="bg-[#ff5757]" position={{ x: 75, y: 25 }} label="2" zoneArea="topRight" />
+                    <DraggablePlayer color="bg-[#ff5757]" position={{ x: 16, y: 75 }} label="3" zoneArea="bottomLeft" />
+                    <DraggablePlayer color="bg-[#ff5757]" position={{ x: 50, y: 75 }} label="4" zoneArea="bottomCenter" />
+                    <DraggablePlayer color="bg-[#ff5757]" position={{ x: 84, y: 75 }} label="5" zoneArea="bottomRight" />
+                  </div>
+                  <button
+                  className="absolute bottom-4 right-4 p-2 bg-white border-4 border-black rounded-full hover:bg-[#c1ff00] transition-colors"
+                  onClick={() => {
+                    setShowHint(!showHint)
+                  }}
+                >
+                  <Info size={24} />
+                </button>
+                {showHint && (
+                  <div className="absolute bottom-16 right-4 p-4 bg-white border-4 border-black rounded-xl shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] w-64" style={{ zIndex: 9999 }}>
+                    Each defender is responsible for a specific zone on the court. Drag defenders to position them optimally within their zones.
+                    <div className="absolute w-4 h-4 bg-white border-r-4 border-b-4 border-black transform rotate-45 -bottom-2 right-8"></div>
+                  </div>
+                )}
                 </div>
+
+
+              </div>
+
+              {/* Zone area controls - in a separate container */}
+              <div className="neo-card bg-white h-80 flex-1 flex flex-col justify-center p-4">
+                <h3 className="font-bold text-xl mb-4 text-center">ZONE RESPONSIBILITIES</h3>
                 <div className="mt-4 text-center">
                   <div className="grid grid-cols-3 gap-2 max-w-xs mx-auto">
                     <button
@@ -115,7 +292,7 @@ export default function ZonePage() {
                     </button>
                   </div>
                   {activeZoneArea && (
-                    <div className="mt-2 p-2 bg-white border-2 border-black rounded-md text-sm">
+                    <div className="mt-4 p-3 bg-white border-4 border-black rounded-xl text-sm">
                       {activeZoneArea === "top" &&
                         "Top defenders guard perimeter shooters and prevent easy passes inside."}
                       {activeZoneArea === "middle" &&
@@ -123,25 +300,9 @@ export default function ZonePage() {
                       {activeZoneArea === "bottom" && "Bottom defenders protect the paint and rebound."}
                     </div>
                   )}
+                  
                 </div>
               </div>
-
-              <button
-                className="absolute bottom-4 right-4 p-2 bg-white border-4 border-black rounded-full hover:bg-[#c1ff00] transition-colors"
-                onClick={() => {
-                  setShowHint(!showHint)
-                }}
-              >
-                <Info size={24} />
-              </button>
-
-              {showHint && (
-                <div className="absolute bottom-16 right-4 p-4 bg-white border-4 border-black rounded-xl shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] w-64">
-                  Common zone formations include 2-3, 3-2, and 1-3-1, named for how defenders are positioned from front
-                  to back
-                  <div className="absolute w-4 h-4 bg-white border-r-4 border-b-4 border-black transform rotate-45 -bottom-2 right-8"></div>
-                </div>
-              )}
             </div>
 
             <div className="flex justify-center gap-4">
@@ -187,188 +348,211 @@ export default function ZonePage() {
               There are several common zone formations, each with specific strengths and weaknesses:
             </p>
 
-            <div className="space-y-6">
-              <div className="neo-card" id="2-3-zone">
-                <h3 className="font-bold text-xl mb-4">2-3 ZONE</h3>
-                <div className="grid md:grid-cols-2 gap-6">
-                  <div>
-                    <p className="mb-2">
-                      Two defenders at the top of the key, three across the baseline. Excellent for protecting the paint
-                      and rebounding.
-                    </p>
-                    <ul className="space-y-2">
-                      <li className="flex items-center gap-2">
-                        <div className="w-5 h-5 rounded-full bg-[#c1ff00] flex-shrink-0 flex items-center justify-center text-sm mt-0.5">
-                          ✓
-                        </div>
-                        <span>Strong interior defense</span>
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <div className="w-5 h-5 rounded-full bg-[#c1ff00] flex-shrink-0 flex items-center justify-center text-sm mt-0.5">
-                          ✓
-                        </div>
-                        <span>Good rebounding position</span>
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <div className="w-5 h-5 rounded-full bg-[#ff5757] flex-shrink-0 flex items-center justify-center text-sm mt-0.5">
-                          ✗
-                        </div>
-                        <span>Vulnerable to perimeter shooting</span>
-                      </li>
-                    </ul>
-                  </div>
-                  <div className="h-40 border-4 border-black rounded-xl bg-gray-100 flex items-center justify-center">
-                    <div className="w-32 h-32 bg-[#3366cc] border-4 border-black rounded-full flex items-center justify-center relative">
-                      {/* Top zone defenders */}
-                      <DraggablePlayer color="bg-[#ff5757]" position={{ x: 30, y: 15 }} />
-                      <DraggablePlayer color="bg-[#ff5757]" position={{ x: 70, y: 15 }} />
-
-                      {/* Bottom zone defenders */}
-                      <DraggablePlayer color="bg-[#ff5757]" position={{ x: 15, y: 85 }} />
-                      <DraggablePlayer color="bg-[#ff5757]" position={{ x: 50, y: 85 }} />
-                      <DraggablePlayer color="bg-[#ff5757]" position={{ x: 85, y: 85 }} />
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="neo-card" id="3-2-zone">
-                <h3 className="font-bold text-xl mb-4">3-2 ZONE</h3>
-                <div className="grid md:grid-cols-2 gap-6">
-                  <div>
-                    <p className="mb-2">
-                      Three defenders across the top, two near the baseline. Better perimeter defense but weaker
-                      rebounding.
-                    </p>
-                    <ul className="space-y-2">
-                      <li className="flex items-center gap-2">
-                        <div className="w-5 h-5 rounded-full bg-[#c1ff00] flex-shrink-0 flex items-center justify-center text-sm mt-0.5">
-                          ✓
-                        </div>
-                        <span>Strong perimeter defense</span>
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <div className="w-5 h-5 rounded-full bg-[#c1ff00] flex-shrink-0 flex items-center justify-center text-sm mt-0.5">
-                          ✓
-                        </div>
-                        <span>Good for defending 3-point shooters</span>
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <div className="w-5 h-5 rounded-full bg-[#ff5757] flex-shrink-0 flex items-center justify-center text-sm mt-0.5">
-                          ✗
-                        </div>
-                        <span>Weaker interior defense</span>
-                      </li>
-                    </ul>
-                  </div>
-                  <div className="h-40 border-4 border-black rounded-xl bg-gray-100 flex items-center justify-center">
-                    <div className="w-32 h-32 bg-[#3366cc] border-4 border-black rounded-full flex items-center justify-center relative">
-                      {/* Top zone defenders */}
-                      <DraggablePlayer color="bg-[#ff5757]" position={{ x: 15, y: 15 }} />
-                      <DraggablePlayer color="bg-[#ff5757]" position={{ x: 50, y: 15 }} />
-                      <DraggablePlayer color="bg-[#ff5757]" position={{ x: 85, y: 15 }} />
-
-                      {/* Bottom zone defenders */}
-                      <DraggablePlayer color="bg-[#ff5757]" position={{ x: 30, y: 85 }} />
-                      <DraggablePlayer color="bg-[#ff5757]" position={{ x: 70, y: 85 }} />
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="neo-card" id="1-3-1-zone">
-                <h3 className="font-bold text-xl mb-4">1-3-1 ZONE</h3>
-                <div className="grid md:grid-cols-2 gap-6">
-                  <div>
-                    <p className="mb-2">
-                      One defender at top, three across the middle, one at the bottom. Great for trapping and creating
-                      turnovers.
-                    </p>
-                    <ul className="space-y-2">
-                      <li className="flex items-center gap-2">
-                        <div className="w-5 h-5 rounded-full bg-[#c1ff00] flex-shrink-0 flex items-center justify-center text-sm mt-0.5">
-                          ✓
-                        </div>
-                        <span>Excellent for trapping</span>
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <div className="w-5 h-5 rounded-full bg-[#c1ff00] flex-shrink-0 flex items-center justify-center text-sm mt-0.5">
-                          ✓
-                        </div>
-                        <span>Creates turnovers</span>
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <div className="w-5 h-5 rounded-full bg-[#ff5757] flex-shrink-0 flex items-center justify-center text-sm mt-0.5">
-                          ✗
-                        </div>
-                        <span>Requires good conditioning</span>
-                      </li>
-                    </ul>
-                  </div>
-                  <div className="h-40 border-4 border-black rounded-xl bg-gray-100 flex items-center justify-center">
-                    <div className="w-32 h-32 bg-[#3366cc] border-4 border-black rounded-full flex items-center justify-center relative">
-                      {/* Top zone defender */}
-                      <DraggablePlayer color="bg-[#ff5757]" position={{ x: 50, y: 15 }} />
-
-                      {/* Middle zone defenders */}
-                      <DraggablePlayer color="bg-[#ff5757]" position={{ x: 15, y: 50 }} />
-                      <DraggablePlayer color="bg-[#ff5757]" position={{ x: 50, y: 50 }} />
-                      <DraggablePlayer color="bg-[#ff5757]" position={{ x: 85, y: 50 }} />
-
-                      {/* Bottom zone defender */}
-                      <DraggablePlayer color="bg-[#ff5757]" position={{ x: 50, y: 85 }} />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="neo-card bg-[#c1ff00]">
-              <p className="font-bold text-lg flex items-center gap-2">
-                <span className="w-8 h-8 bg-black text-white rounded-full flex items-center justify-center">!</span>
-                COACH'S CHALLENGE:
-              </p>
-              <p className="mt-2 mb-4">
-                Identify which zone would work best against a team with strong outside shooters but weak inside
-                presence.
-              </p>
-              <div className="flex gap-4">
+            <div className="flex gap-4 mb-6">
                 <button
-                  className={`neo-button-outline ${selectedZone === "2-3" ? (showZoneAnswer ? "bg-[#ff5757] text-white" : "bg-white") : ""}`}
-                  onClick={() => handleZoneSelect("2-3")}
-                  disabled={showZoneAnswer}
+                className={`neo-button-outline font-bold ${activeZoneType === "2-3" ? "bg-[#c1ff00]" : ""}`}
+                onClick={() => setActiveZoneType("2-3")}
                 >
                   2-3 ZONE
-                  {selectedZone === "2-3" && showZoneAnswer && (
-                    <div className="flex justify-center mt-2">
-                      <X size={24} className="text-white" strokeWidth={3} />
-                    </div>
-                  )}
                 </button>
                 <button
-                  className={`neo-button-outline ${selectedZone === "3-2" ? (showZoneAnswer ? "bg-[#c1ff00]" : "bg-white") : ""}`}
-                  onClick={() => handleZoneSelect("3-2")}
-                  disabled={showZoneAnswer}
+                className={`neo-button-outline font-bold ${activeZoneType === "3-2" ? "bg-[#c1ff00]" : ""}`}
+                onClick={() => setActiveZoneType("3-2")}
                 >
                   3-2 ZONE
-                  {selectedZone === "3-2" && showZoneAnswer && (
-                    <div className="flex justify-center mt-2">
-                      <Check size={24} className="text-black" strokeWidth={3} />
-                    </div>
-                  )}
                 </button>
                 <button
-                  className={`neo-button-outline ${selectedZone === "1-3-1" ? (showZoneAnswer ? "bg-[#ff5757] text-white" : "bg-white") : ""}`}
-                  onClick={() => handleZoneSelect("1-3-1")}
-                  disabled={showZoneAnswer}
-                >
-                  1-3-1 ZONE
-                  {selectedZone === "1-3-1" && showZoneAnswer && (
-                    <div className="flex justify-center mt-2">
-                      <X size={24} className="text-white" strokeWidth={3} />
+                className={`neo-button-outline font-bold ${activeZoneType === "1-3-1" ? "bg-[#c1ff00]" : ""}`}
+                onClick={() => setActiveZoneType("1-3-1")}
+              >
+                1-3-1 ZONE
+              </button>
+            </div>
+
+            <div className="flex flex-col md:flex-row gap-6">
+              <div className="neo-card">
+                <h3 className="font-bold text-xl mb-4">{activeZoneType} ZONE</h3>
+                <div className="border-4 border-black rounded-xl overflow-hidden flex items-center justify-center relative md:w-[300px] h-[280px]">
+                  <div 
+                    className="absolute inset-0"
+                    style={{
+                      backgroundImage: 'url("/court.jpg")',
+                      backgroundSize: 'contain',
+                      backgroundPosition: 'center',
+                      backgroundRepeat: 'no-repeat'
+                    }}
+                  >
+                    {/* Conditionally render the zone dividers and players based on activeZoneType */}
+                    {activeZoneType === "2-3" && (
+                      <>
+                        {/* Zone dividers for 2-3 zone */}
+                        <div className="absolute w-full h-3/5 top-0 border-b-2 border-dashed border-black"></div>
+                        <div className="absolute w-1/2 h-3/5 top-0 left-0 border-r-2 border-dashed border-black"></div>
+                        <div className="absolute w-1/3 h-2/5 bottom-0 left-0 border-r-2 border-dashed border-black"></div>
+                        <div className="absolute w-1/3 h-2/5 bottom-0 right-0 border-l-2 border-dashed border-black"></div>
+                        
+                        {/* Top zone defenders */}
+                        <DraggablePlayer color="bg-[#ff5757]" position={{ x: 25, y: 45 }} label="1" zoneArea="top2-3Left" />
+                        <DraggablePlayer color="bg-[#ff5757]" position={{ x: 70, y: 45 }} label="2" zoneArea="top2-3Right" />
+
+                        {/* Bottom zone defenders */}
+                        <DraggablePlayer color="bg-[#ff5757]" position={{ x: 16, y: 75 }} label="3" zoneArea="bottom2-3Left" />
+                        <DraggablePlayer color="bg-[#ff5757]" position={{ x: 50, y: 75 }} label="4" zoneArea="bottom2-3Center" />
+                        <DraggablePlayer color="bg-[#ff5757]" position={{ x: 84, y: 75 }} label="5" zoneArea="bottom2-3Right" />
+                      </>
+                    )}
+
+                    {activeZoneType === "3-2" && (
+                      <>
+                        {/* Zone dividers for 3-2 zone */}
+                        <div className="absolute w-full h-3/5 top-0 border-b-2 border-dashed border-black"></div>
+                        <div className="absolute w-1/3 h-3/5 top-0 left-0 border-r-2 border-dashed border-black"></div>
+                        <div className="absolute w-1/3 h-3/5 top-0 right-0 border-l-2 border-dashed border-black"></div>
+                        <div className="absolute w-1/2 h-2/5 bottom-0 left-0 border-r-2 border-dashed border-black"></div>
+                        
+                        {/* Top zone defenders */}
+                        <DraggablePlayer color="bg-[#ff5757]" position={{ x: 16, y: 45 }} label="1" zoneArea="top3-2Left" />
+                        <DraggablePlayer color="bg-[#ff5757]" position={{ x: 50, y: 45 }} label="2" zoneArea="top3-2Center" />
+                        <DraggablePlayer color="bg-[#ff5757]" position={{ x: 84, y: 45 }} label="3" zoneArea="top3-2Right" />
+
+                        {/* Bottom zone defenders */}
+                        <DraggablePlayer color="bg-[#ff5757]" position={{ x: 30, y: 75 }} label="4" zoneArea="bottom3-2Left" />
+                        <DraggablePlayer color="bg-[#ff5757]" position={{ x: 70, y: 75 }} label="5" zoneArea="bottom3-2Right" />
+                      </>
+                    )}
+
+                    {activeZoneType === "1-3-1" && (
+                      <>
+                        {/* Zone dividers for 1-3-1 zone */}
+                        <div className="absolute w-full h-1/2 top-0 border-b-2 border-dashed border-black"></div>
+                        <div className="absolute w-1/3 h-1/3 top-1/2 left-0 border-r-2 border-dashed border-black"></div>
+                        <div className="absolute w-full h-4/5 top-0 border-b-2 border-dashed border-black"></div>
+                        <div className="absolute w-1/3 h-1/3 top-1/2 right-0 border-l-2 border-dashed border-black"></div>
+                        
+                        {/* Top zone defender */}
+                        <DraggablePlayer color="bg-[#ff5757]" position={{ x: 50, y: 15 }} label="1" zoneArea="top" />
+
+                        {/* Middle zone defenders */}
+                        <DraggablePlayer color="bg-[#ff5757]" position={{ x: 16, y: 50 }} label="2" zoneArea="middleLeft" />
+                        <DraggablePlayer color="bg-[#ff5757]" position={{ x: 50, y: 50 }} label="3" zoneArea="middleCenter" />
+                        <DraggablePlayer color="bg-[#ff5757]" position={{ x: 84, y: 50 }} label="4" zoneArea="middleRight" />
+
+                        {/* Bottom zone defender */}
+                        <DraggablePlayer color="bg-[#ff5757]" position={{ x: 50, y: 85 }} label="5" zoneArea="bottom" />
+                      </>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Pros and cons for the selected zone */}
+              <div className="flex-1 neo-card">
+                <h3 className="font-bold text-xl mb-4">PROS & CONS</h3>
+                
+                {activeZoneType === "2-3" && (
+                  <div className="space-y-4">
+                    <div>
+                      <h4 className="font-bold flex items-center gap-2">
+                        <div className="w-6 h-6 rounded-full bg-[#c1ff00] flex items-center justify-center text-black font-bold text-xs">+</div>
+                        PROS:
+                      </h4>
+                      <ul className="ml-8 list-disc space-y-1 mt-2">
+                        <li>Strong protection in the paint</li>
+                        <li>Excellent rebounding coverage</li>
+                        <li>Great for defending inside players</li>
+                        <li>Limits drives to the basket</li>
+                      </ul>
                     </div>
-                  )}
-                </button>
+                    
+                    <div>
+                      <h4 className="font-bold flex items-center gap-2">
+                        <div className="w-6 h-6 rounded-full bg-[#ff5757] flex items-center justify-center text-black font-bold text-xs">-</div>
+                        CONS:
+                      </h4>
+                      <ul className="ml-8 list-disc space-y-1 mt-2">
+                        <li>Vulnerable to outside shooters</li>
+                        <li>Weak coverage at the free throw line</li>
+                        <li>Difficult to contest corner 3-pointers</li>
+                        <li>Can be beaten by quick ball movement</li>
+                      </ul>
+                    </div>
+                    
+                    <div className="border-2 border-black p-3 rounded-lg mt-4 bg-gray-50">
+                      <p className="font-bold">BEST USED AGAINST:</p>
+                      <p>Teams with strong inside play but weak perimeter shooting</p>
+                    </div>
+                  </div>
+                )}
+
+                {activeZoneType === "3-2" && (
+                  <div className="space-y-4">
+                    <div>
+                      <h4 className="font-bold flex items-center gap-2">
+                        <div className="w-6 h-6 rounded-full bg-[#c1ff00] flex items-center justify-center text-black font-bold text-xs">+</div>
+                        PROS:
+                      </h4>
+                      <ul className="ml-8 list-disc space-y-1 mt-2">
+                        <li>Strong perimeter defense</li>
+                        <li>Great for defending 3-point shooters</li>
+                        <li>Allows quick transitions to offense</li>
+                        <li>Defends against skip passes well</li>
+                      </ul>
+                    </div>
+                    
+                    <div>
+                      <h4 className="font-bold flex items-center gap-2">
+                        <div className="w-6 h-6 rounded-full bg-[#ff5757] flex items-center justify-center text-black font-bold text-xs">-</div>
+                        CONS:
+                      </h4>
+                      <ul className="ml-8 list-disc space-y-1 mt-2">
+                        <li>Weaker interior defense</li>
+                        <li>Vulnerable to high post entry passes</li>
+                        <li>Can struggle with rebounding</li>
+                        <li>Susceptible to baseline drives</li>
+                      </ul>
+                    </div>
+                    
+                    <div className="border-2 border-black p-3 rounded-lg mt-4 bg-gray-50">
+                      <p className="font-bold">BEST USED AGAINST:</p>
+                      <p>Teams with multiple perimeter shooters but limited post presence</p>
+                    </div>
+                  </div>
+                )}
+
+                {activeZoneType === "1-3-1" && (
+                  <div className="space-y-4">
+                    <div>
+                      <h4 className="font-bold flex items-center gap-2">
+                        <div className="w-6 h-6 rounded-full bg-[#c1ff00] flex items-center justify-center text-black font-bold text-xs">+</div>
+                        PROS:
+                      </h4>
+                      <ul className="ml-8 list-disc space-y-1 mt-2">
+                        <li>Creates trapping opportunities</li>
+                        <li>Great for forcing turnovers</li>
+                        <li>Disrupts offensive rhythm</li>
+                        <li>Good balance of inside/outside coverage</li>
+                      </ul>
+                    </div>
+                    
+                    <div>
+                      <h4 className="font-bold flex items-center gap-2">
+                        <div className="w-6 h-6 rounded-full bg-[#ff5757] flex items-center justify-center text-black font-bold text-xs">-</div>
+                        CONS:
+                      </h4>
+                      <ul className="ml-8 list-disc space-y-1 mt-2">
+                        <li>Requires high energy and conditioning</li>
+                        <li>Vulnerable to corner shots</li>
+                        <li>Can be beaten by good ball handlers</li>
+                        <li>Challenging to implement effectively</li>
+                      </ul>
+                    </div>
+                    
+                    <div className="border-2 border-black p-3 rounded-lg mt-4 bg-gray-50">
+                      <p className="font-bold">BEST USED AGAINST:</p>
+                      <p>Teams with poor ball handling or teams that struggle with pressure</p>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>

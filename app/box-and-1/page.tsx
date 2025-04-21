@@ -5,6 +5,146 @@ import type React from "react"
 import { ChevronLeft, ChevronRight, Play, Info, Trophy, Star, Check, X } from "lucide-react"
 import Navbar from "@/components/navbar"
 
+function ZonePlayer({
+  color,
+  position,
+  label,
+  zoneArea,
+}: {
+  color: string
+  position: { x: number; y: number }
+  label?: string
+  zoneArea: 
+    // Main diagram zones
+    | "topLeft" | "topRight" | "bottomLeft"| "bottomRight"
+}) {
+  const playerRef = useRef<HTMLDivElement>(null)
+  const [playerPosition, setPlayerPosition] = useState(position)
+  const [isDragging, setIsDragging] = useState(false)
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 })
+
+  // Define zone boundaries (in percentages)
+  const zoneBoundaries = {
+    // Main diagram zones
+    topLeft: { minX: 0, maxX: 45, minY: 35, maxY: 60 },
+    topRight: { minX: 50, maxX: 100, minY: 35, maxY: 60 },
+    bottomLeft: { minX: 0, maxX: 45, minY: 65, maxY:100 },
+    bottomRight: { minX: 50, maxX: 100, minY: 65, maxY: 100 },
+  };
+
+  const currentZone = zoneBoundaries[zoneArea];
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    e.preventDefault()
+    if (playerRef.current) {
+      const rect = playerRef.current.getBoundingClientRect()
+      const parentRect = playerRef.current.parentElement?.getBoundingClientRect()
+      
+      if (parentRect) {
+        setDragOffset({
+          x: e.clientX - rect.left,
+          y: e.clientY - rect.top
+        })
+        setIsDragging(true)
+      }
+    }
+  }
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (playerRef.current && e.touches[0]) {
+      const rect = playerRef.current.getBoundingClientRect()
+      const parentRect = playerRef.current.parentElement?.getBoundingClientRect()
+      
+      if (parentRect) {
+        setDragOffset({
+          x: e.touches[0].clientX - rect.left,
+          y: e.touches[0].clientY - rect.top
+        })
+        setIsDragging(true)
+      }
+    }
+  }
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (isDragging && playerRef.current) {
+        const parentRect = playerRef.current.parentElement?.getBoundingClientRect()
+        if (parentRect) {
+          // Calculate position as percentage of parent container
+          const newX = ((e.clientX - parentRect.left - dragOffset.x) / parentRect.width) * 100
+          const newY = ((e.clientY - parentRect.top - dragOffset.y) / parentRect.height) * 100
+
+          // Constrain to zone boundaries
+          const constrainedX = Math.max(currentZone.minX, Math.min(newX, currentZone.maxX))
+          const constrainedY = Math.max(currentZone.minY, Math.min(newY, currentZone.maxY))
+
+          setPlayerPosition({ x: constrainedX, y: constrainedY })
+        }
+      }
+    }
+
+    const handleTouchMove = (e: TouchEvent) => {
+      if (isDragging && e.touches[0] && playerRef.current) {
+        e.preventDefault() // Prevent scrolling while dragging
+        const parentRect = playerRef.current.parentElement?.getBoundingClientRect()
+        if (parentRect) {
+          // Calculate position as percentage of parent container
+          const newX = ((e.touches[0].clientX - parentRect.left - dragOffset.x) / parentRect.width) * 100
+          const newY = ((e.touches[0].clientY - parentRect.top - dragOffset.y) / parentRect.height) * 100
+
+          // Constrain to zone boundaries
+          const constrainedX = Math.max(currentZone.minX, Math.min(newX, currentZone.maxX))
+          const constrainedY = Math.max(currentZone.minY, Math.min(newY, currentZone.maxY))
+
+          setPlayerPosition({ x: constrainedX, y: constrainedY })
+        }
+      }
+    }
+
+    const handleMouseUp = () => {
+      setIsDragging(false)
+    }
+
+    const handleTouchEnd = () => {
+      setIsDragging(false)
+    }
+
+    if (isDragging) {
+      window.addEventListener("mousemove", handleMouseMove)
+      window.addEventListener("mouseup", handleMouseUp)
+      window.addEventListener("touchmove", handleTouchMove, { passive: false })
+      window.addEventListener("touchend", handleTouchEnd)
+    }
+
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove)
+      window.removeEventListener("mouseup", handleMouseUp)
+      window.removeEventListener("touchmove", handleTouchMove)
+      window.removeEventListener("touchend", handleTouchEnd)
+    }
+  }, [isDragging, dragOffset, currentZone])
+
+  return (
+    <div
+      ref={playerRef}
+      className={`absolute w-6 h-6 ${color} border-2 border-black rounded-full cursor-move shadow-md flex items-center justify-center`}
+      style={{
+        left: `${playerPosition.x}%`,
+        top: `${playerPosition.y}%`,
+        touchAction: "none",
+        zIndex: isDragging ? 10 : 1,
+        transition: isDragging ? "none" : "box-shadow 0.2s",
+        boxShadow: isDragging ? "0 0 0 4px rgba(255, 87, 87, 0.5)" : "",
+      }}
+      onMouseDown={handleMouseDown}
+      onTouchStart={handleTouchStart}
+    >
+      {label && <span className="font-bold text-xs text-white">{label}</span>}
+    </div>
+  )
+}
+
+
 // Interactive player component for drag and drop
 function DraggablePlayer({
   color,
@@ -120,6 +260,221 @@ function DraggablePlayer({
   )
 }
 
+// Update the interactive diagram in the Box and 1 defense page
+function BoxAndOneInteractiveCourt() {
+  const courtRef = useRef<HTMLDivElement>(null)
+  const [courtSize, setCourtSize] = useState({ width: 0, height: 0 })
+  const [starPosition, setStarPosition] = useState({ x: 160, y: 60 })
+  const [isDraggingStar, setIsDraggingStar] = useState(false)
+  const [starDragOffset, setStarDragOffset] = useState({ x: 0, y: 0 })
+  
+  
+
+  // Calculate chaser defender position based on star position
+  const calculateChaserPosition = () => {
+    // Offset slightly from the star player
+    const offsetX = 10
+    const offsetY = 10
+    let chaserX = starPosition.x + offsetX
+    let chaserY = starPosition.y + offsetY
+    
+    // Constrain to court boundaries
+    if (courtSize.width > 0 && courtSize.height > 0) {
+      chaserX = Math.max(0, Math.min(chaserX, courtSize.width - 24))
+      chaserY = Math.max(0, Math.min(chaserY, courtSize.height - 24))
+    }
+    
+    return { x: chaserX, y: chaserY }
+  }
+  
+  const chaserPosition = calculateChaserPosition()
+  
+  // Event handlers for star player dragging
+  const handleStarMouseDown = (e: React.MouseEvent) => {
+    e.preventDefault()
+    if (courtRef.current) {
+      const rect = courtRef.current.getBoundingClientRect()
+      setStarDragOffset({
+        x: e.clientX - rect.left - starPosition.x,
+        y: e.clientY - rect.top - starPosition.y,
+      })
+      setIsDraggingStar(true)
+    }
+  }
+  
+  const handleStarTouchStart = (e: React.TouchEvent) => {
+    if (courtRef.current && e.touches[0]) {
+      const rect = courtRef.current.getBoundingClientRect()
+      setStarDragOffset({
+        x: e.touches[0].clientX - rect.left - starPosition.x,
+        y: e.touches[0].clientY - rect.top - starPosition.y,
+      })
+      setIsDraggingStar(true)
+    }
+  }
+  
+  useEffect(() => {
+    const updateSize = () => {
+      if (courtRef.current) {
+        const width = courtRef.current.clientWidth
+        const height = courtRef.current.clientHeight
+        setCourtSize({ width, height })
+      }
+    }
+    
+    // Handle star player drag movements
+    const handleMouseMove = (e: MouseEvent) => {
+      if (isDraggingStar && courtRef.current) {
+        const rect = courtRef.current.getBoundingClientRect()
+        const newX = e.clientX - rect.left - starDragOffset.x
+        const newY = e.clientY - rect.top - starDragOffset.y
+        
+        // Constrain to court boundaries
+        const constrainedX = Math.max(0, Math.min(newX, courtSize.width - 24))
+        const constrainedY = Math.max(0, Math.min(newY, courtSize.height - 24))
+        
+        setStarPosition({ x: constrainedX, y: constrainedY })
+      }
+    }
+    
+    const handleTouchMove = (e: TouchEvent) => {
+      if (isDraggingStar && e.touches[0] && courtRef.current) {
+        e.preventDefault()
+        const rect = courtRef.current.getBoundingClientRect()
+        const newX = e.touches[0].clientX - rect.left - starDragOffset.x
+        const newY = e.touches[0].clientY - rect.top - starDragOffset.y
+        
+        // Constrain to court boundaries
+        const constrainedX = Math.max(0, Math.min(newX, courtSize.width - 24))
+        const constrainedY = Math.max(0, Math.min(newY, courtSize.height - 24))
+        
+        setStarPosition({ x: constrainedX, y: constrainedY })
+      }
+    }
+    
+    const handleMouseUp = () => {
+      setIsDraggingStar(false)
+    }
+    
+    const handleTouchEnd = () => {
+      setIsDraggingStar(false)
+    }
+    
+    // Initial size calculation
+    updateSize()
+    
+    // Update size on resize
+    window.addEventListener("resize", updateSize)
+    
+    // Add drag event listeners
+    if (isDraggingStar) {
+      window.addEventListener("mousemove", handleMouseMove)
+      window.addEventListener("mouseup", handleMouseUp)
+      window.addEventListener("touchmove", handleTouchMove, { passive: false })
+      window.addEventListener("touchend", handleTouchEnd)
+    }
+    
+    return () => {
+      window.removeEventListener("resize", updateSize)
+      window.removeEventListener("mousemove", handleMouseMove)
+      window.removeEventListener("mouseup", handleMouseUp)
+      window.removeEventListener("touchmove", handleTouchMove)
+      window.removeEventListener("touchend", handleTouchEnd)
+    }
+  }, [isDraggingStar, starDragOffset])
+
+  
+  return (
+    <div className="flex flex-col md:flex-row gap-4">
+      <div
+        ref={courtRef}
+        className="relative h-80 neo-card bg-orange-200 overflow-hidden"
+        style={{
+          backgroundImage: 'url("/court.jpg")',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          width: "370px",
+        }}
+      >
+        
+        <div className="w-full h-full relative">
+          {/* Zone dividers */}
+          <div className="absolute w-full h-2/3 top-0 border-b-2 border-dashed border-black"></div>
+          <div className="absolute w-1/2 h-full top-0 right-0 border-l-2 border-dashed border-black"></div>
+          
+          {/* Zone players */}
+          <ZonePlayer color="bg-green-500" position={{ x: 25, y: 50 }} label="1" zoneArea="topLeft" />
+          <ZonePlayer color="bg-green-500" position={{ x: 75, y: 50 }} label="2" zoneArea="topRight" />
+          <ZonePlayer color="bg-green-500" position={{ x: 25, y: 75 }} label="3" zoneArea="bottomLeft" />
+          <ZonePlayer color="bg-green-500" position={{ x: 75, y: 75 }} label="5" zoneArea="bottomRight" />
+        </div>
+        
+        {/* Star player (draggable) */}
+        <div
+          className="absolute w-6 h-6 bg-[#ff4444] border-2 border-black rounded-full cursor-move shadow-md flex items-center justify-center"
+          style={{
+            left: `${starPosition.x}px`,
+            top: `${starPosition.y}px`,
+            touchAction: "none",
+            zIndex: isDraggingStar ? 10 : 1,
+            transition: isDraggingStar ? "none" : "box-shadow 0.2s",
+            boxShadow: isDraggingStar ? "0 0 0 4px rgba(255, 87, 87, 0.5)" : "",
+          }}
+          onMouseDown={handleStarMouseDown}
+          onTouchStart={handleStarTouchStart}
+        >
+          <span className="font-bold text-xs text-white">S</span>
+        </div>
+        
+        {/* Chaser defender (follows star) */}
+        <div
+          className="absolute w-6 h-6 bg-[#c1ff00] border-2 border-black rounded-full shadow-md flex items-center justify-center pointer-events-none"
+          style={{
+            left: `${chaserPosition.x}px`,
+            top: `${chaserPosition.y}px`,
+            zIndex: 0,
+            transition: "left 0.05s linear, top 0.05s linear",
+          }}
+        >
+          <span className="font-bold text-xs text-black">C</span>
+        </div>
+      
+      </div>
+      
+      <div className="neo-card bg-white p-4 text-black flex-1">
+        <h3 className="font-bold text-lg mb-2">BOX AND 1 DEFENSE</h3>
+        <p className="mb-4">
+          <span className="font-bold">4 defenders:</span> Positioned in a box zone formation.
+          <br /><br />
+          <span className="font-bold">1 defender (C):</span> "Chaser" who tightly follows the star player (S).
+        </p>
+        <div className="flex gap-2 mb-4">
+          <div className="flex items-center">
+            <div className="w-4 h-4 bg-green-500 rounded-full mr-1"></div>
+            <span>Box Defenders</span>
+          </div>
+          <div className="flex items-center">
+            <div className="w-4 h-4 bg-[#c1ff00] rounded-full mr-1"></div>
+            <span>Chaser</span>
+          </div>
+          <div className="flex items-center">
+            <div className="w-4 h-4 bg-[#ff4444] rounded-full mr-1"></div>
+            <span>Star</span>
+          </div>
+        </div>
+        <div className="p-3 bg-gray-100 border-2 border-black rounded-lg">
+          <p className="font-bold">INSTRUCTIONS:</p>
+          <ul className="list-disc ml-5 text-sm">
+            <li>Drag the star player (S) to move around the court</li>
+            <li>The chaser defender (C) will follow the star</li>
+            <li>Box defenders can be moved within their zones</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function BoxAndOnePage() {
   const [currentSlide, setCurrentSlide] = useState(0)
   const [showHint, setShowHint] = useState(false)
@@ -155,47 +510,7 @@ export default function BoxAndOnePage() {
               Key Principle: Neutralize the opponent's star player while maintaining good overall court coverage.
             </p>
 
-            <div className="relative h-72 neo-card bg-gray-100 my-8">
-              <div className="absolute inset-0 flex items-center justify-center pt-10">
-                <div className="text-center">
-                  <div className="font-bold text-black mb-4 mt-2">INTERACTIVE BOX AND 1 DIAGRAM</div>
-                  <div className="w-48 h-48 mx-auto bg-[#3366cc] border-4 border-black rounded-full flex items-center justify-center">
-                    <div className="w-32 h-32 bg-white border-4 border-black rounded-full flex items-center justify-center relative">
-                      {/* Box zone defenders - now draggable */}
-                      <DraggablePlayer color="bg-[#ff5757]" initialPosition={{ x: 25, y: 25 }} label="D1" />
-                      <DraggablePlayer color="bg-[#ff5757]" initialPosition={{ x: 90, y: 25 }} label="D2" />
-                      <DraggablePlayer color="bg-[#ff5757]" initialPosition={{ x: 25, y: 90 }} label="D3" />
-                      <DraggablePlayer color="bg-[#ff5757]" initialPosition={{ x: 90, y: 90 }} label="D4" />
-
-                      {/* Chaser defender and star offensive player */}
-                      <DraggablePlayer color="bg-[#c1ff00]" initialPosition={{ x: 60, y: 50 }} label="C" />
-                      <DraggablePlayer color="bg-[#ff4444]" initialPosition={{ x: 65, y: 55 }} label="S" />
-                    </div>
-                  </div>
-                  <div className="mt-4 font-bold text-black bg-white px-2 py-1 rounded-md inline-block border border-black">
-                    DRAG DEFENDERS TO POSITION THEM
-                  </div>
-                </div>
-              </div>
-
-              <button
-                className="absolute bottom-4 right-4 p-2 bg-white border-4 border-black rounded-full hover:bg-[#c1ff00] transition-colors"
-                onClick={() => {
-                  setShowHint(!showHint)
-                  if (!showHint) increasePoints(5)
-                }}
-              >
-                <Info size={24} />
-              </button>
-
-              {showHint && (
-                <div className="absolute bottom-16 right-4 p-4 bg-white border-4 border-black rounded-xl shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] w-64">
-                  The "chaser" defender (C) follows the star player (S) everywhere, while the "box" defenders (D1-D4)
-                  shift to provide help when needed
-                  <div className="absolute w-4 h-4 bg-white border-r-4 border-b-4 border-black transform rotate-45 -bottom-2 right-8"></div>
-                </div>
-              )}
-            </div>
+            <BoxAndOneInteractiveCourt />
 
             <div className="flex justify-center gap-4">
               <button className="neo-button-outline flex items-center gap-2" onClick={() => increasePoints(10)}>

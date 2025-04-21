@@ -32,71 +32,123 @@ function FlipCard({ text, type }: { text: string; type: "pro" | "con" }) {
   )
 }
 
-// Interactive player component for drag and drop
-function DraggablePlayer({
-  color,
-  initialPosition,
-  label,
-}: { color: string; initialPosition: { x: number; y: number }; label?: string }) {
-  const playerRef = useRef<HTMLDivElement>(null)
-  const [position, setPosition] = useState(initialPosition)
+// Renamed and modified DraggablePlayer to handle paired attacker/defender
+function PairedPlayer({
+  initialAttackerPosition,
+  courtSize,
+}: {
+  initialAttackerPosition: { x: number; y: number }
+  courtSize: { width: number; height: number }
+}) {
+  const attackerRef = useRef<HTMLDivElement>(null)
+  const [attackerPosition, setAttackerPosition] = useState(initialAttackerPosition)
   const [isDragging, setIsDragging] = useState(false)
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 })
+  const circleSize = 24; // Define circle size for calculations
+
+  // Calculate defender position: Offset from the attacker
+  const calculateDefenderPosition = () => {
+    if (courtSize.width <= 0 || courtSize.height <= 0) {
+      return { x: 0, y: 0 }; // Return zero if court size is invalid
+    }
+    const offsetX = 0; // Horizontal offset
+    const offsetY = 20; // Vertical offset
+
+    let defenderX = attackerPosition.x + offsetX;
+    let defenderY = attackerPosition.y + offsetY;
+
+    // Constrain defender to court boundaries
+    defenderX = Math.max(0, Math.min(defenderX, courtSize.width - circleSize));
+    defenderY = Math.max(0, Math.min(defenderY, courtSize.height - circleSize));
+
+    // Prevent defender from going over the attacker if attacker is near the bottom-right edge
+     if (attackerPosition.x > courtSize.width - circleSize - offsetX) {
+       defenderX = attackerPosition.x - offsetX - circleSize / 2; // Place to the left instead
+     }
+     if (attackerPosition.y > courtSize.height - circleSize - offsetY) {
+       defenderY = attackerPosition.y - offsetY - circleSize / 2; // Place above instead
+     }
+
+     // Ensure defender position is still within bounds after adjustments
+     defenderX = Math.max(0, Math.min(defenderX, courtSize.width - circleSize));
+     defenderY = Math.max(0, Math.min(defenderY, courtSize.height - circleSize));
+
+
+    return { x: defenderX, y: defenderY };
+  };
+
+  const defenderPosition = calculateDefenderPosition();
+
 
   const handleMouseDown = (e: React.MouseEvent) => {
     e.preventDefault()
-    if (playerRef.current) {
-      const rect = playerRef.current.getBoundingClientRect()
+    if (attackerRef.current) {
+      const rect = attackerRef.current.getBoundingClientRect()
+      const parentRect = attackerRef.current.offsetParent?.getBoundingClientRect() // Use offsetParent
+      const offsetX = parentRect ? parentRect.left : 0
+      const offsetY = parentRect ? parentRect.top : 0
+
       setDragOffset({
-        x: e.clientX - rect.left,
-        y: e.clientY - rect.top,
+        // Calculate offset relative to the parent container's origin
+        x: e.clientX - offsetX - attackerPosition.x,
+        y: e.clientY - offsetY - attackerPosition.y,
       })
       setIsDragging(true)
     }
   }
 
   const handleTouchStart = (e: React.TouchEvent) => {
-    if (playerRef.current && e.touches[0]) {
-      const rect = playerRef.current.getBoundingClientRect()
+    if (attackerRef.current && e.touches[0]) {
+      const rect = attackerRef.current.getBoundingClientRect()
+      const parentRect = attackerRef.current.offsetParent?.getBoundingClientRect() // Use offsetParent
+      const offsetX = parentRect ? parentRect.left : 0
+      const offsetY = parentRect ? parentRect.top : 0
+
       setDragOffset({
-        x: e.touches[0].clientX - rect.left,
-        y: e.touches[0].clientY - rect.top,
+         // Calculate offset relative to the parent container's origin
+        x: e.touches[0].clientX - offsetX - attackerPosition.x,
+        y: e.touches[0].clientY - offsetY - attackerPosition.y,
       })
       setIsDragging(true)
     }
   }
 
+
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
-      if (isDragging && playerRef.current) {
-        const parentRect = playerRef.current.parentElement?.getBoundingClientRect()
-        if (parentRect) {
-          const newX = e.clientX - parentRect.left - dragOffset.x
-          const newY = e.clientY - parentRect.top - dragOffset.y
+      if (isDragging && courtSize.width > 0 && courtSize.height > 0 && attackerRef.current) {
+         const parentRect = attackerRef.current.offsetParent?.getBoundingClientRect();
+         if (!parentRect) return; // Exit if parent isn't available
 
-          // Constrain to parent boundaries
-          const constrainedX = Math.max(0, Math.min(newX, parentRect.width - 24))
-          const constrainedY = Math.max(0, Math.min(newY, parentRect.height - 24))
+        // Calculate position relative to the court container's origin
+        const newX = e.clientX - parentRect.left - dragOffset.x;
+        const newY = e.clientY - parentRect.top - dragOffset.y;
 
-          setPosition({ x: constrainedX, y: constrainedY })
-        }
+
+        // Constrain to parent boundaries (courtSize)
+        const constrainedX = Math.max(0, Math.min(newX, courtSize.width - circleSize))
+        const constrainedY = Math.max(0, Math.min(newY, courtSize.height - circleSize))
+
+        setAttackerPosition({ x: constrainedX, y: constrainedY })
       }
     }
 
     const handleTouchMove = (e: TouchEvent) => {
-      if (isDragging && playerRef.current && e.touches[0]) {
-        e.preventDefault() // Prevent scrolling while dragging
-        const parentRect = playerRef.current.parentElement?.getBoundingClientRect()
-        if (parentRect) {
-          const newX = e.touches[0].clientX - parentRect.left - dragOffset.x
-          const newY = e.touches[0].clientY - parentRect.top - dragOffset.y
+      if (isDragging && e.touches[0] && courtSize.width > 0 && courtSize.height > 0 && attackerRef.current) {
+         e.preventDefault() // Prevent scrolling while dragging
+         const parentRect = attackerRef.current.offsetParent?.getBoundingClientRect();
+         if (!parentRect) return;
 
-          // Constrain to parent boundaries
-          const constrainedX = Math.max(0, Math.min(newX, parentRect.width - 24))
-          const constrainedY = Math.max(0, Math.min(newY, parentRect.height - 24))
+        // Calculate position relative to the court container
+        const newX = e.touches[0].clientX - parentRect.left - dragOffset.x;
+        const newY = e.touches[0].clientY - parentRect.top - dragOffset.y;
 
-          setPosition({ x: constrainedX, y: constrainedY })
-        }
+
+        // Constrain to parent boundaries (courtSize)
+        const constrainedX = Math.max(0, Math.min(newX, courtSize.width - circleSize))
+        const constrainedY = Math.max(0, Math.min(newY, courtSize.height - circleSize))
+
+        setAttackerPosition({ x: constrainedX, y: constrainedY })
       }
     }
 
@@ -109,6 +161,7 @@ function DraggablePlayer({
     }
 
     if (isDragging) {
+      // Attach listeners to window to capture movement outside the element
       window.addEventListener("mousemove", handleMouseMove)
       window.addEventListener("mouseup", handleMouseUp)
       window.addEventListener("touchmove", handleTouchMove, { passive: false })
@@ -121,98 +174,144 @@ function DraggablePlayer({
       window.removeEventListener("touchmove", handleTouchMove)
       window.removeEventListener("touchend", handleTouchEnd)
     }
-  }, [isDragging, dragOffset])
+
+  }, [isDragging, dragOffset, courtSize]) // Removed attackerPosition from dependency array to avoid potential loops
+
+  // Ensure positions are valid numbers before rendering
+  const isValidPosition = (pos: { x: number; y: number }) =>
+    !isNaN(pos.x) && !isNaN(pos.y) && isFinite(pos.x) && isFinite(pos.y)
 
   return (
-    <div
-      ref={playerRef}
-      className={`absolute w-8 h-8 ${color} border-2 border-black rounded-full cursor-move shadow-md flex items-center justify-center`}
-      style={{
-        left: `${position.x}px`,
-        top: `${position.y}px`,
-        touchAction: "none",
-        zIndex: isDragging ? 10 : 1,
-        transition: isDragging ? "none" : "box-shadow 0.2s",
-        boxShadow: isDragging ? "0 0 0 4px rgba(193, 255, 0, 0.5)" : "",
-      }}
-      onMouseDown={handleMouseDown}
-      onTouchStart={handleTouchStart}
-    >
-      {label ? (
-        <span className="font-bold text-xs">{label}</span>
-      ) : (
-        <div className="w-2 h-2 bg-black rounded-full"></div>
+    <>
+      {/* Attacker (Red) - Draggable */}
+      {isValidPosition(attackerPosition) && (
+        <div
+          ref={attackerRef}
+          className={`absolute w-6 h-6 bg-red-500 border-2 border-black rounded-full cursor-move shadow-md flex items-center justify-center`}
+          style={{
+            left: `${attackerPosition.x}px`,
+            top: `${attackerPosition.y}px`,
+            width: `${circleSize}px`,
+            height: `${circleSize}px`,
+            touchAction: "none",
+            zIndex: isDragging ? 10 : 1,
+            transition: isDragging ? "none" : "box-shadow 0.2s",
+            boxShadow: isDragging ? "0 0 0 4px rgba(255, 87, 87, 0.5)" : "", // Red glow
+          }}
+          onMouseDown={handleMouseDown}
+          onTouchStart={handleTouchStart}
+        >
+          <span className="font-bold text-xs text-white">A</span>
+        </div>
       )}
-    </div>
+
+      {/* Defender (Green) - Follower, Not Draggable */}
+      {isValidPosition(defenderPosition) && courtSize.width > 0 && courtSize.height > 0 && (
+        <div
+          className={`absolute w-6 h-6 bg-green-500 border-2 border-black rounded-full shadow-md flex items-center justify-center pointer-events-none`} // Added pointer-events-none
+          style={{
+            left: `${defenderPosition.x}px`,
+            top: `${defenderPosition.y}px`,
+            width: `${circleSize}px`,
+            height: `${circleSize}px`,
+            zIndex: 0, // Ensure defender is behind attacker if they overlap
+            transition: "left 0.05s linear, top 0.05s linear", // Faster, linear transition for tighter following
+          }}
+        >
+          <span className="font-bold text-xs text-white">D</span>
+        </div>
+      )}
+    </>
   )
 }
 
-// Fix the interactive court diagram text contrast issue
-// Update the court diagram to make text more visible and ensure interaction works
+// Update the InteractiveCourt component
 function InteractiveCourt() {
   const courtRef = useRef<HTMLDivElement>(null)
-  const [showHint, setShowHint] = useState(false)
   const [courtSize, setCourtSize] = useState({ width: 0, height: 0 })
 
+  // Initial positions for the 5 pairs (relative to top-left of the court)
+  // Ensure these are within the expected bounds initially
+  const initialPositions = [
+      { x: 150, y: 80 },
+      { x: 20, y: 150 },
+      { x: 300, y: 150 },
+      { x: 100, y: 250 },
+      { x: 220, y: 250 },
+  ];
+
   useEffect(() => {
-    if (courtRef.current) {
-      const updateSize = () => {
-        if (courtRef.current) {
-          setCourtSize({
-            width: courtRef.current.offsetWidth,
-            height: courtRef.current.offsetHeight,
-          })
+    const updateSize = () => {
+      if (courtRef.current) {
+        const width = courtRef.current.offsetWidth;
+        const height = courtRef.current.offsetHeight;
+        // Ensure initial positions are valid after size calculation
+        if (width > 0 && height > 0) {
+            setCourtSize({ width, height });
+            // Optionally, adjust initial positions if they fall outside new bounds
+            // For simplicity, we assume initial positions are reasonable for most sizes
         }
       }
-
-      updateSize()
-      window.addEventListener("resize", updateSize)
-
-      return () => {
-        window.removeEventListener("resize", updateSize)
-      }
     }
-  }, [])
+
+    // Initial size calculation
+    updateSize();
+
+    // Update size on window resize
+    window.addEventListener("resize", updateSize)
+
+    // Check size periodically in case initial render dimensions are zero
+    const intervalId = setInterval(() => {
+        if (courtRef.current && (courtSize.width === 0 || courtSize.height === 0)) {
+            updateSize();
+        } else {
+            clearInterval(intervalId); // Clear interval once size is determined
+        }
+    }, 100);
+
+
+    return () => {
+      window.removeEventListener("resize", updateSize)
+       clearInterval(intervalId);
+    }
+    // Re-run effect if courtSize changes from 0
+  }, [courtSize.width, courtSize.height]);
 
   return (
-    <div className="relative h-64 neo-card bg-gray-100 my-8" ref={courtRef}>
-      <div className="absolute inset-0 flex items-center justify-center">
-        <div className="text-center w-full h-full">
-          <div className="mb-4 font-bold text-black">INTERACTIVE COURT DIAGRAM</div>
-          <div className="w-48 h-48 mx-auto bg-[#3366cc] border-4 border-black rounded-full flex items-center justify-center relative">
-            <div className="w-32 h-32 bg-white border-4 border-black rounded-full flex items-center justify-center relative">
-              {/* Court markings */}
-              <div className="absolute w-full h-0.5 bg-black top-1/2 transform -translate-y-1/2"></div>
-              <div className="absolute h-full w-0.5 bg-black left-1/2 transform -translate-x-1/2"></div>
-
-              {/* Draggable players - positioned relative to the court */}
-              <DraggablePlayer color="bg-[#ff5757]" initialPosition={{ x: 30, y: 30 }} label="D1" />
-              <DraggablePlayer color="bg-[#ff5757]" initialPosition={{ x: 90, y: 30 }} label="D2" />
-              <DraggablePlayer color="bg-[#ff5757]" initialPosition={{ x: 30, y: 90 }} label="D3" />
-              <DraggablePlayer color="bg-[#ff5757]" initialPosition={{ x: 90, y: 90 }} label="D4" />
-              <DraggablePlayer color="bg-[#c1ff00]" initialPosition={{ x: 60, y: 60 }} label="O" />
-            </div>
+    // Create a flex container to hold both the court and the instruction div
+    <div className="flex flex-row items-start gap-4">
+      {/* The court container */}
+      <div
+          ref={courtRef}
+          className="relative h-80 neo-card bg-orange-200 overflow-hidden"
+          style={{
+              backgroundImage: 'url("/court.jpg")',
+              backgroundSize: 'contain',
+              backgroundPosition: 'center',
+              backgroundRepeat: 'no-repeat',
+              width: "370px"
+          }}
+      >
+          <div className="absolute inset-0 flex items-center justify-center">
+              <div className="text-center w-full h-full relative">
+                  {/* Players */}
+                  {courtSize.width > 0 && courtSize.height > 0 && initialPositions.map((pos, index) => (
+                      <PairedPlayer
+                          key={index}
+                          initialAttackerPosition={pos}
+                          courtSize={courtSize}
+                      />
+                  ))}
+              </div>
           </div>
-          <div className="mt-4 font-bold text-black bg-white px-2 py-1 rounded-md inline-block border border-black">
-            DRAG PLAYERS TO POSITION THEM DEFENSIVELY
-          </div>
-        </div>
       </div>
 
-      <button
-        className="absolute bottom-4 right-4 p-2 bg-white border-4 border-black rounded-full hover:bg-[#c1ff00] transition-colors"
-        onClick={() => setShowHint(!showHint)}
-      >
-        <Info size={24} />
-      </button>
-
-      {showHint && (
-        <div className="absolute bottom-16 right-4 p-4 bg-white border-4 border-black rounded-xl shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] w-64">
-          Try dragging defenders (D1-D4) to position them correctly for man-to-man defense. Each defender should guard
-          an offensive player (O).
-          <div className="absolute w-4 h-4 bg-white border-r-4 border-b-4 border-black transform rotate-45 -bottom-2 right-8"></div>
-        </div>
-      )}
+      {/* Instruction div - now outside and to the right of the court */}
+      <div className="neo-card bg-white p-3 border-4 border-black font-bold text-black text-center max-w-[300px]">
+          DRAG ATTACKERS (RED) - 
+          DEFENDERS (GREEN) 
+          WILL FOLLOW
+      </div>
     </div>
   )
 }
@@ -236,6 +335,7 @@ function ManToManPage() {
               Key Principle: Each defender is responsible for an opponent, no matter where they move.
             </p>
 
+            {/* Updated Interactive Court */}
             <InteractiveCourt />
 
             <div className="flex justify-center">
