@@ -403,10 +403,10 @@ function BoxAndOneInteractiveCourt() {
           <div className="absolute w-1/2 h-full top-0 right-0 border-l-2 border-dashed border-black"></div>
           
           {/* Zone players */}
-          <ZonePlayer color="bg-[#ff5757]" position={{ x: 25, y: 50 }} label="1" zoneArea="topLeft" />
-          <ZonePlayer color="bg-[#ff5757]" position={{ x: 75, y: 50 }} label="2" zoneArea="topRight" />
-          <ZonePlayer color="bg-[#ff5757]" position={{ x: 25, y: 75 }} label="3" zoneArea="bottomLeft" />
-          <ZonePlayer color="bg-[#ff5757]" position={{ x: 75, y: 75 }} label="5" zoneArea="bottomRight" />
+          <ZonePlayer color="bg-green-500" position={{ x: 25, y: 50 }} label="1" zoneArea="topLeft" />
+          <ZonePlayer color="bg-green-500" position={{ x: 75, y: 50 }} label="2" zoneArea="topRight" />
+          <ZonePlayer color="bg-green-500" position={{ x: 25, y: 75 }} label="3" zoneArea="bottomLeft" />
+          <ZonePlayer color="bg-green-500" position={{ x: 75, y: 75 }} label="5" zoneArea="bottomRight" />
         </div>
         
         {/* Star player (draggable) */}
