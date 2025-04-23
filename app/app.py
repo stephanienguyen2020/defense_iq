@@ -19,7 +19,7 @@ QUESTIONS = [
             { 'term': 'Guards space instead of players', 'options': ['One-on-one','Zone','Box and 1'], 'correct': 'Zone' },
             { 'term': 'A mix: 4 in zone, 1 on star player', 'options': ['One-on-one','Zone','Box and 1'], 'correct': 'Box and 1' }
         ],
-        'points': 15
+        'points': 20
     },
     {
         'id': 1,
@@ -46,7 +46,7 @@ QUESTIONS = [
             'Builds individual accountability','High pressure on ball-handler'
         ],
         'correct': ['Builds individual accountability','High pressure on ball-handler'],
-        'points': 15
+        'points': 20
     },
     {
         'id': 4,
@@ -57,7 +57,7 @@ QUESTIONS = [
             'Builds individual accountability','High pressure on ball-handler'
         ],
         'correct': ['Great for team with slow or undersized players'],
-        'points': 15
+        'points': 20
     }
 ]
 TOTAL_QUESTIONS = len(QUESTIONS)
@@ -83,32 +83,43 @@ def quiz(question_id):
     if request.method == 'POST':
         data = request.get_json() or {}
         ans = data.get('answer')
-        q = next((q for q in QUESTIONS if q['id']==question_id), None)
+        q = next((q for q in QUESTIONS if q['id'] == question_id), None)
         correct_flag = False
         if q:
-            if q['type']=='multiple-select':
-                correct_flag = set(ans)==set(q['correct'])
+            if q['type'] == 'multiple-select':
+                correct_flag = set(ans) == set(q['correct'])
+            elif q['type'] == 'matching':
+                correct_items = [item['correct'] for item in q['items']]
+                correct_flag = ans == correct_items
             else:
-                correct_flag = ans==q['correct']
+                correct_flag = ans == q['correct']
+
         QUIZ_ANSWERS.append({
             'question_id': question_id,
             'answer': ans,
             'correct': correct_flag,
             'timestamp': datetime.utcnow().isoformat()
         })
-        if question_id < TOTAL_QUESTIONS-1:
-            return jsonify({'next': f'/quiz/{question_id+1}'})
+
+        if question_id < TOTAL_QUESTIONS - 1:
+            return jsonify({'next': f'/quiz/{question_id + 1}'})
         return jsonify({'next': '/result'})
-    q = next((q for q in QUESTIONS if q['id']==question_id), None)
+
+    q = next((q for q in QUESTIONS if q['id'] == question_id), None)
     if not q:
         return jsonify({'error': 'Question not found'}), 404
     return jsonify(q)
+
 
 @app.route('/result', methods=['GET'])
 def result():
     total = len(QUIZ_ANSWERS)
     score = sum(1 for r in QUIZ_ANSWERS if r['correct'])
     return jsonify({'score': score, 'total': total})
+
+@app.route('/quiz/count', methods=['GET'])
+def quiz_count():
+    return jsonify({'count': TOTAL_QUESTIONS})
 
 if __name__ == '__main__':
     app.run(debug=True)
