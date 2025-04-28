@@ -1,9 +1,11 @@
 "use client"
 import { useState, useRef, useEffect } from "react"
-import type React from "react"
+import { useRouter } from "next/navigation"
 import { ChevronLeft, ChevronRight, Play, Info, Check, X } from "lucide-react"
 import Navbar from "@/components/navbar"
 
+// FlipCard, PairedPlayer, InteractiveCourt remain unchanged...
+// (Include their implementations here as before)
 function FlipCard({ text, type }: { text: string; type: "pro" | "con" }) {
   const [flipped, setFlipped] = useState(false)
 
@@ -315,13 +317,16 @@ function InteractiveCourt() {
     </div>
   )
 }
+// Slide definitions for One-on-One pages
 
-// Fix the defensive stance diagram to improve visibility
-function ManToManPage() {
-  const [currentSlide, setCurrentSlide] = useState(0)
+
+export default function ManToManPage() {
+  const router = useRouter()
+  const LESSON_ID = 1  // maps to One-on-One defense
+  const [currentSlide, setCurrentSlide] = useState<number | null>(null)
   const [quickChallengeAnswer, setQuickChallengeAnswer] = useState<string | null>(null)
 
-  const slides = [
+  const slidesDefinition = [
     {
       title: "MAN-TO-MAN DEFENSE BASICS",
       content: (
@@ -334,10 +339,10 @@ function ManToManPage() {
             <p className="font-bold text-xl">
               Key Principle: Each defender is responsible for an opponent, no matter where they move.
             </p>
-
+  
             {/* Updated Interactive Court */}
             <InteractiveCourt />
-
+  
             <div className="flex justify-center">
               <button className="neo-button flex items-center gap-2 bg-[#c1ff00] hover:bg-[#d8ff66] transition-colors">
                 <Play size={20} />
@@ -345,7 +350,7 @@ function ManToManPage() {
               </button>
             </div>
           </div>
-
+  
           <div className="md:col-span-1">
             <div className="neo-card bg-gray-100 h-full">
               <h2 className="font-bold text-xl mb-4">KEY TERMINOLOGY:</h2>
@@ -366,16 +371,15 @@ function ManToManPage() {
             </div>
           </div>
         </div>
-      ),
+      ), 
     },
-    // Fix the defensive stance diagram to improve visibility
     {
       title: "DEFENSIVE STANCE & POSITIONING",
       content: (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="md:col-span-2 space-y-6">
             <p className="text-lg">Proper defensive stance is the foundation of good man-to-man defense:</p>
-
+  
             <ul className="space-y-4">
               <li className="flex items-center gap-3">
                 <div className="w-8 h-8 bg-[#c1ff00] border-4 border-black rounded-full flex items-center justify-center text-black font-bold">
@@ -402,7 +406,7 @@ function ManToManPage() {
                 <span className="font-bold">Stay between your man and the basket</span>
               </li>
             </ul>
-
+  
             <div className="h-64 neo-card bg-white my-8 flex items-center justify-center">
               <div className="text-center">
                 <div className="w-32 h-64 mx-auto relative">
@@ -417,7 +421,7 @@ function ManToManPage() {
                 </div>
               </div>
             </div>
-
+  
             <div className="neo-card bg-[#c1ff00]">
               <p className="font-bold text-lg flex items-center gap-2">
                 <span className="w-8 h-8 bg-black text-white rounded-full flex items-center justify-center">!</span>
@@ -428,7 +432,7 @@ function ManToManPage() {
               </p>
             </div>
           </div>
-
+  
           <div className="md:col-span-1">
             <div className="neo-card bg-gray-100 h-full">
               <h2 className="font-bold text-xl mb-4">KEY TERMINOLOGY:</h2>
@@ -449,9 +453,8 @@ function ManToManPage() {
             </div>
           </div>
         </div>
-      ),
+      ), 
     },
-    // Fix the quick challenge to make incorrect answers more visible
     {
       title: "PROS & CONS",
       content: (
@@ -460,7 +463,7 @@ function ManToManPage() {
             <p className="text-center font-bold text-xl bg-[#c1ff00] border-4 border-black rounded-xl p-3">
               TAP EACH CARD TO REVEAL IF IT'S A PRO OR CON OF MAN-TO-MAN DEFENSE
             </p>
-
+  
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {[
                 { text: "HIGH PRESSURE ON BALL-HANDLER", type: "pro" },
@@ -475,7 +478,7 @@ function ManToManPage() {
                 <FlipCard key={index} text={item.text} type={item.type} />
               ))}
             </div>
-
+  
             <div className="neo-card bg-[#3366cc] text-white">
               <h3 className="font-bold text-xl mb-4">QUICK CHALLENGE:</h3>
               <p className="mb-6">
@@ -525,7 +528,7 @@ function ManToManPage() {
               </div>
             </div>
           </div>
-
+  
           <div className="md:col-span-1">
             <div className="neo-card bg-gray-100 h-full">
               <h2 className="font-bold text-xl mb-4">KEY TERMINOLOGY:</h2>
@@ -546,34 +549,69 @@ function ManToManPage() {
             </div>
           </div>
         </div>
-      ),
+      ), 
     },
   ]
+  // Fetch the persisted slide index from the backend on mount
+  useEffect(() => {
+    fetch(`http://127.0.0.1:5000/learn/${LESSON_ID}`)
+      .then(res => res.json())
+      .then(data => {
+        // expects backend to return { lesson_id, content, current_slide }
+        setCurrentSlide(typeof data.current_slide === 'number' ? data.current_slide : 0)
+      })
+      .catch(err => {
+        console.error("Failed to fetch lesson state:", err)
+        setCurrentSlide(0)
+      })
+  }, [])
+
+  // Helper to POST updated slide index and navigate or update locally
+  const updateSlide = (newSlide: number) => {
+    fetch(`http://127.0.0.1:5000/learn/${LESSON_ID}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ selection: newSlide })
+    })
+      .then(res => res.json())
+      .then(data => {
+        if (newSlide >= slidesDefinition.length) {
+          // last slide: backend returns next lesson path
+          router.push(data.next)
+        } else {
+          setCurrentSlide(newSlide)
+        }
+      })
+      .catch(err => console.error("Failed to update lesson state:", err))
+  }
 
   const nextSlide = () => {
-    if (currentSlide < slides.length - 1) {
-      setCurrentSlide(currentSlide + 1)
+    if (currentSlide === slidesDefinition.length - 1) {
+      // last slide → go to your zone defense page
+      router.push("/zone")
     } else {
-      // Navigate to next section
-      window.location.href = "/zone"
+      updateSlide(currentSlide + 1)
     }
-  }
+  } 
 
   const prevSlide = () => {
-    if (currentSlide > 0) {
-      setCurrentSlide(currentSlide - 1)
-    }
+    if (currentSlide !== null && currentSlide > 0) updateSlide(currentSlide - 1)
   }
+
+  // Wait until we have a slide index
+  if (currentSlide === null) {
+    return <div className="min-h-screen flex items-center justify-center">Loading...</div>
+  }
+
+  const slide = slidesDefinition[currentSlide]
 
   return (
     <div className="min-h-screen flex flex-col bg-white">
       <Navbar />
-
       <main className="flex-1 container mx-auto px-4 py-12">
         <div className="max-w-6xl mx-auto">
-          <h1 className="neo-subheading mb-8">{slides[currentSlide].title}</h1>
-
-          <div className="neo-card mb-8">{slides[currentSlide].content}</div>
+          <h1 className="neo-subheading mb-8">{slide.title}</h1>
+          <div className="neo-card mb-8">{slide.content}</div>
 
           <div className="flex justify-between items-center">
             <button
@@ -586,32 +624,32 @@ function ManToManPage() {
             </button>
 
             <div className="flex items-center gap-2">
-              {slides.map((_, index) => (
+              {slidesDefinition.map((_, idx) => (
                 <div
-                  key={index}
+                  key={idx}
                   className={`w-8 h-8 rounded-full border-4 border-black ${
-                    currentSlide === index ? "bg-[#c1ff00]" : "bg-white"
-                  } hover:bg-[#d8ff66] transition-colors flex items-center justify-center`}
-                  onClick={() => setCurrentSlide(index)}
-                  style={{ cursor: "pointer" }}
+                    currentSlide === idx ? "bg-[#c1ff00]" : "bg-white"
+                  } hover:bg-[#d8ff66] transition-colors flex items-center justify-center cursor-pointer`}
+                  onClick={() => updateSlide(idx)}
                 >
-                  <span className="font-bold">{index + 1}</span>
+                  <span className="font-bold">{idx + 1}</span>
                 </div>
               ))}
             </div>
-
             <button
               className="neo-button flex items-center gap-2 bg-[#c1ff00] hover:bg-[#d8ff66] transition-colors"
               onClick={nextSlide}
             >
-              <span>{currentSlide === slides.length - 1 ? "NEXT DEFENSE" : "NEXT"}</span>
+              <span>
+                {currentSlide === slidesDefinition.length - 1
+                  ? "NEXT DEFENSE"
+                  : "NEXT"}
+              </span>
               <ChevronRight size={20} />
-            </button>
+            </button>       
           </div>
         </div>
       </main>
     </div>
   )
 }
-
-export default ManToManPage

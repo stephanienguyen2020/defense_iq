@@ -1,5 +1,6 @@
-"use client"
+"use client";
 import { useState, useRef, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import { ChevronLeft, ChevronRight, Play, Info, Trophy, X, Check } from "lucide-react"
 import Navbar from "@/components/navbar"
 
@@ -172,7 +173,9 @@ function DraggablePlayer({
 }
 
 export default function ZonePage() {
-  const [currentSlide, setCurrentSlide] = useState(0)
+  const router = useRouter()
+  const LESSON_ID = 2  // maps to Zone defense lesson
+  const [currentSlide, setCurrentSlide] = useState<number | null>(null)
   const [showHint, setShowHint] = useState(false)
   const [selectedZone, setSelectedZone] = useState<string | null>(null)
   const [selectedConcern, setSelectedConcern] = useState<string | null>(null)
@@ -182,18 +185,54 @@ export default function ZonePage() {
   const [activeZoneType, setActiveZoneType] = useState<"2-3" | "3-2" | "1-3-1">("2-3")
   const courtRef = useRef<HTMLDivElement>(null)
 
-  const handleZoneSelect = (zone: string) => {
-    setSelectedZone(zone)
-    setShowZoneAnswer(true)
+  // Fetch persisted slide index on mount
+  useEffect(() => {
+    fetch(`http://127.0.0.1:5000/learn/${LESSON_ID}`)
+      .then(res => res.json())
+      .then(data => {
+        setCurrentSlide(typeof data.current_slide === 'number' ? data.current_slide : 0)
+      })
+      .catch(err => {
+        console.error("Failed to fetch lesson state:", err)
+        setCurrentSlide(0)
+      })
+  }, [])
+
+  // Helper to POST updated slide index and navigate or update locally
+  const updateSlide = (newSlide: number) => {
+    fetch(`http://127.0.0.1:5000/learn/${LESSON_ID}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ selection: newSlide })
+    })
+      .then(res => res.json())
+      .then(data => {
+        if (newSlide >= slides.length) {
+          // last slide: backend returns next path
+          router.push(data.next)
+        } else {
+          setCurrentSlide(newSlide)
+        }
+      })
+      .catch(err => console.error("Failed to update lesson state:", err))
   }
 
-  const handleConcernSelect = (concern: string) => {
-    setSelectedConcern(concern)
-    setShowConcernAnswer(true)
+  const nextSlide = () => {
+    if (currentSlide === slides.length - 1) {
+      // last slide → go to your zone defense page
+      router.push("/box-and-1")
+    } else {
+      updateSlide(currentSlide + 1)
+    }
+  }  
+
+  const prevSlide = () => {
+    if (currentSlide !== null && currentSlide > 0) updateSlide(currentSlide - 1)
   }
 
-  const handleAreaClick = (area: string) => {
-    setActiveZoneArea(area)
+  // Wait until we have a slide index
+  if (currentSlide === null) {
+    return <div className="min-h-screen flex items-center justify-center">Loading...</div>
   }
 
   const slides = [
@@ -742,33 +781,18 @@ export default function ZonePage() {
       ),
     },
   ]
-
-  const nextSlide = () => {
-    if (currentSlide < slides.length - 1) {
-      setCurrentSlide(currentSlide + 1)
-    } else {
-      // Navigate to next section
-      window.location.href = "/box-and-1"
-    }
-  }
-
-  const prevSlide = () => {
-    if (currentSlide > 0) {
-      setCurrentSlide(currentSlide - 1)
-    }
-  }
+  const slide = slides[currentSlide]
 
   return (
     <div className="min-h-screen flex flex-col bg-white">
       <Navbar />
-
       <main className="flex-1 container mx-auto px-4 py-12">
         <div className="max-w-6xl mx-auto">
           <div className="flex justify-between items-center mb-8">
-            <h1 className="neo-subheading">{slides[currentSlide].title}</h1>
+            <h1 className="neo-subheading">{slide.title}</h1>
           </div>
 
-          <div className="neo-card mb-8">{slides[currentSlide].content}</div>
+          <div className="neo-card mb-8">{slide.content}</div>
 
           <div className="flex justify-between items-center">
             <button
@@ -781,16 +805,15 @@ export default function ZonePage() {
             </button>
 
             <div className="flex items-center gap-2">
-              {slides.map((_, index) => (
+              {slides.map((_, idx) => (
                 <div
-                  key={index}
+                  key={idx}
                   className={`w-8 h-8 rounded-full border-4 border-black ${
-                    currentSlide === index ? "bg-[#c1ff00]" : "bg-white"
-                  } hover:bg-[#d8ff66] transition-colors flex items-center justify-center`}
-                  onClick={() => setCurrentSlide(index)}
-                  style={{ cursor: "pointer" }}
+                    currentSlide === idx ? "bg-[#c1ff00]" : "bg-white"
+                  } hover:bg-[#d8ff66] transition-colors flex items-center justify-center cursor-pointer`}
+                  onClick={() => updateSlide(idx)}
                 >
-                  <span className="font-bold">{index + 1}</span>
+                  <span className="font-bold">{idx + 1}</span>
                 </div>
               ))}
             </div>
@@ -808,3 +831,4 @@ export default function ZonePage() {
     </div>
   )
 }
+

@@ -1,10 +1,10 @@
-"use client"
-import { useState, useRef, useEffect } from "react"
-import type React from "react"
+"use client";
+import React, { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
+import { ChevronLeft, ChevronRight, Play, Info, Trophy, Star, Check, X } from "lucide-react";
+import Navbar from "@/components/navbar";
 
-import { ChevronLeft, ChevronRight, Play, Info, Trophy, Star, Check, X } from "lucide-react"
-import Navbar from "@/components/navbar"
-
+const LESSON_ID = 3;  // Box and 1 defense lesson ID
 function ZonePlayer({
   color,
   position,
@@ -474,28 +474,79 @@ function BoxAndOneInteractiveCourt() {
     </div>
   )
 }
-
 export default function BoxAndOnePage() {
-  const [currentSlide, setCurrentSlide] = useState(0)
-  const [showHint, setShowHint] = useState(false)
-  const [challengeCompleted, setChallengeCompleted] = useState(false)
-  const [streakCount, setStreakCount] = useState(0)
-  const [points, setPoints] = useState(0)
+  const router = useRouter();
+  const [currentSlide, setCurrentSlide] = useState<number | null>(null);
+  const [showHint, setShowHint] = useState(false);
+  const [challengeCompleted, setChallengeCompleted] = useState(false);
+  const [streakCount, setStreakCount] = useState(0);
+  const [points, setPoints] = useState(0);
   const [challengeAnswers, setChallengeAnswers] = useState<{
-    decision?: string
-    chaser?: string
-    switch?: string
-  }>({})
+    decision?: string;
+    chaser?: string;
+    switch?: string;
+  }>({});
 
-  const increasePoints = (value: number) => {
-    setPoints(points + value)
-    setStreakCount(streakCount + 1)
+  // Fetch persisted slide index on mount
+  useEffect(() => {
+    fetch(`http://127.0.0.1:5000/learn/${LESSON_ID}`)
+      .then(res => res.json())
+      .then(data => {
+        setCurrentSlide(typeof data.current_slide === 'number' ? data.current_slide : 0);
+      })
+      .catch(() => setCurrentSlide(0));
+  }, []);
 
-    if (points + value >= 75 && !challengeCompleted) {
-      setChallengeCompleted(true)
+  // Persist slide index or navigate when appropriate
+  const updateSlide = (newSlide: number) => {
+    // If advancing past last slide, go to quiz
+    if (newSlide > slides.length - 1) {
+      router.push("/quiz");
+      return;
     }
+
+    fetch(`http://127.0.0.1:5000/learn/${LESSON_ID}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ selection: newSlide }),
+    })
+      .then(res => res.json())
+      .then(data => {
+        setCurrentSlide(newSlide);
+      })
+      .catch(() => {
+        // Fallback in case of error
+        setCurrentSlide(newSlide);
+      });
+  };
+
+  const nextSlide = () => {
+    if (currentSlide !== null) {
+      updateSlide(currentSlide + 1);
+      increasePoints(10);
+    }
+  };
+
+  const prevSlide = () => {
+    if (currentSlide !== null && currentSlide > 0) {
+      updateSlide(currentSlide - 1);
+    }
+  };
+
+  // Loading state until slide fetched
+  if (currentSlide === null) {
+    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
   }
 
+  const increasePoints = (value: number) => {
+    setPoints(points + value);
+    setStreakCount(streakCount + 1);
+    if (points + value >= 75 && !challengeCompleted) {
+      setChallengeCompleted(true);
+    }
+  };
+
+  // Slide definitions (unchanged)
   const slides = [
     {
       title: "BOX AND 1 DEFENSE BASICS",
@@ -832,71 +883,51 @@ export default function BoxAndOnePage() {
         </div>
       ),
     },
-  ]
+  ] 
 
-  const nextSlide = () => {
-    if (currentSlide < slides.length - 1) {
-      setCurrentSlide(currentSlide + 1)
-      increasePoints(10)
-    } else {
-      // Navigate to next section
-      window.location.href = "/quiz"
-    }
-  }
-
-  const prevSlide = () => {
-    if (currentSlide > 0) {
-      setCurrentSlide(currentSlide - 1)
-    }
-  }
+  const slide = slides[currentSlide];
 
   return (
     <div className="min-h-screen flex flex-col bg-white">
       <Navbar />
-
       <main className="flex-1 container mx-auto px-4 py-12">
         <div className="max-w-6xl mx-auto">
           <div className="flex justify-between items-center mb-8">
-            <h1 className="neo-subheading">{slides[currentSlide].title}</h1>
+            <h1 className="neo-subheading">{slide.title}</h1>
           </div>
-
-          <div className="neo-card mb-8">{slides[currentSlide].content}</div>
-
+          <div className="neo-card mb-8">{slide.content}</div>
           <div className="flex justify-between items-center">
             <button
-              className="neo-button-outline flex items-center gap-2"
               onClick={prevSlide}
               disabled={currentSlide === 0}
+              className="neo-button-outline flex items-center gap-2"
             >
               <ChevronLeft size={20} />
               <span>PREVIOUS</span>
             </button>
-
             <div className="flex items-center gap-2">
-              {slides.map((_, index) => (
+              {slides.map((_, idx) => (
                 <div
-                  key={index}
+                  key={idx}
+                  onClick={() => updateSlide(idx)}
                   className={`w-8 h-8 rounded-full border-4 border-black ${
-                    currentSlide === index ? "bg-[#c1ff00]" : "bg-white"
-                  } hover:bg-[#d8ff66] transition-colors flex items-center justify-center`}
-                  onClick={() => setCurrentSlide(index)}
-                  style={{ cursor: "pointer" }}
+                    currentSlide === idx ? 'bg-[#c1ff00]' : 'bg-white'
+                  } hover:bg-[#d8ff66] transition-colors flex items-center justify-center cursor-pointer`}
                 >
-                  <span className="font-bold">{index + 1}</span>
+                  <span className="font-bold">{idx + 1}</span>
                 </div>
               ))}
             </div>
-
-            <button 
-              className="neo-button flex items-center gap-2 bg-[#c1ff00] hover:bg-[#d8ff66] transition-colors" 
+            <button
               onClick={nextSlide}
+              className="neo-button flex items-center gap-2 bg-[#c1ff00] hover:bg-[#d8ff66] transition-colors"
             >
-              <span>{currentSlide === slides.length - 1 ? "GO TO QUIZ" : "NEXT"}</span>
+              <span>{currentSlide === slides.length - 1 ? 'GO TO QUIZ' : 'NEXT'}</span>
               <ChevronRight size={20} />
             </button>
           </div>
         </div>
       </main>
     </div>
-  )
+  );
 }

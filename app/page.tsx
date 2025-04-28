@@ -1,9 +1,23 @@
-import type React from "react"
-import Link from "next/link"
-import { Star, ShieldCheck, Users, Target, ArrowRight } from "lucide-react"
-import Navbar from "@/components/navbar"
+"use client";
+import React, { useState, useEffect } from "react";
+import Link from "next/link";
+import { Star, ShieldCheck, Users, Target, ArrowRight } from "lucide-react";
+import Navbar from "@/components/navbar";
 
 export default function HomePage() {
+  const [startPath, setStartPath] = useState<string>("/learning-path");
+
+  useEffect(() => {
+    fetch("http://127.0.0.1:5000/")
+      .then((res) => {
+        console.log("Home fetch status:", res.status, res.ok);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return res.json();
+      })
+      .then((data: { start: string }) => setStartPath(data.start))
+      .catch((err) => console.error("Home fetch error:", err));
+  }, []);
+
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
@@ -25,10 +39,10 @@ export default function HomePage() {
                   </p>
 
                   <div className="flex gap-4 mb-8">
-                    <Link href="/learning-path" className="inline-block neo-button text-black">
+                    <Link href={startPath} className="inline-block neo-button text-black">
                       START LEARNING NOW
                     </Link>
-                    <Link href="/quiz" className="inline-block neo-button-outline text-black">
+                    <Link href="/quiz/0" className="inline-block neo-button-outline text-black">
                       TAKE THE QUIZ
                     </Link>
                   </div>
@@ -132,10 +146,10 @@ export default function HomePage() {
         </section>
       </main>
     </div>
-  )
+  );
 }
 
-// Update the DefenseCard component to improve text contrast
+// DefenseCard component unchanged
 function DefenseCard({
   title,
   description,
@@ -144,12 +158,12 @@ function DefenseCard({
   points,
   icon,
 }: {
-  title: string
-  description: string
-  href: string
-  badge: string
-  points: number
-  icon: React.ReactNode
+  title: string;
+  description: string;
+  href: string;
+  badge: string;
+  points: number;
+  icon: React.ReactNode;
 }) {
   return (
     <div className="glass-card p-6 h-full flex flex-col">
@@ -179,5 +193,5 @@ function DefenseCard({
         </Link>
       </div>
     </div>
-  )
+  );
 }
