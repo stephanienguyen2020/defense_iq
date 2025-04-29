@@ -150,7 +150,7 @@ export default function LearningPathPage() {
             </div>
           </div>
 
-          <div className="neo-card bg-muted">
+          <div className="neo-card bg-white">
             <h2 className="neo-subheading mb-6">YOUR PROGRESS</h2>
             <div className="flex items-center gap-4 mb-8">
               <div className="w-full max-w-md">

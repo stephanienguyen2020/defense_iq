@@ -452,7 +452,7 @@ export default function QuizPage() {
 
   if (!quizStarted) {
     return (
-      <div className="min-h-screen flex flex-col bg-white">
+      <div className="min-h-screen flex flex-col bg-[#f6f5f5]">
         <Navbar />
 
         <main className="flex-1 container mx-auto px-4 py-12">
@@ -521,7 +521,7 @@ export default function QuizPage() {
   } 
 
   return (
-    <div className="min-h-screen flex flex-col bg-white">
+    <div className="min-h-screen flex flex-col bg-[#f6f5f5]">
       <Navbar />
       <main className="flex-1 container mx-auto px-4 py-12">
         <div className="max-w-6xl mx-auto">

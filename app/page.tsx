@@ -172,7 +172,7 @@ function DefenseCard({
           <h3 className="font-bold text-xl text-white">{title}</h3>
           <div className="neo-badge">{badge}</div>
         </div>
-        <p className="text-white mb-6">{description}</p>
+        <p className="text-gray-300 mb-6">{description}</p>
       </div>
 
       <div className="mt-auto">

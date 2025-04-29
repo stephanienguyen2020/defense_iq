@@ -343,12 +343,12 @@ export default function ManToManPage() {
             {/* Updated Interactive Court */}
             <InteractiveCourt />
   
-            <div className="flex justify-center">
+            {/* <div className="flex justify-center">
               <button className="neo-button flex items-center gap-2 bg-[#c1ff00] hover:bg-[#d8ff66] transition-colors">
                 <Play size={20} />
                 <span>WATCH EXAMPLE</span>
               </button>
-            </div>
+            </div> */}
           </div>
   
           <div className="md:col-span-1">
@@ -606,7 +606,7 @@ export default function ManToManPage() {
   const slide = slidesDefinition[currentSlide]
 
   return (
-    <div className="min-h-screen flex flex-col bg-white">
+    <div className="min-h-screen flex flex-col bg-[#f6f5f5]">
       <Navbar />
       <main className="flex-1 container mx-auto px-4 py-12">
         <div className="max-w-6xl mx-auto">

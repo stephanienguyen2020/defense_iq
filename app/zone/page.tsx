@@ -344,7 +344,7 @@ export default function ZonePage() {
               </div>
             </div>
 
-            <div className="flex justify-center gap-4">
+            {/* <div className="flex justify-center gap-4">
               <button className="neo-button-outline flex items-center gap-2">
                 <Play size={20} />
                 <span>WATCH EXAMPLE</span>
@@ -353,7 +353,7 @@ export default function ZonePage() {
               <button className="neo-button-outline flex items-center gap-2">
                 <span>TRY INTERACTIVE DEMO</span>
               </button>
-            </div>
+            </div> */}
           </div>
 
           <div className="md:col-span-1">
@@ -784,7 +784,7 @@ export default function ZonePage() {
   const slide = slides[currentSlide]
 
   return (
-    <div className="min-h-screen flex flex-col bg-white">
+    <div className="min-h-screen flex flex-col bg-[#f6f5f5]">
       <Navbar />
       <main className="flex-1 container mx-auto px-4 py-12">
         <div className="max-w-6xl mx-auto">
