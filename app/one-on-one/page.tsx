@@ -365,6 +365,20 @@ export default function ManToManPage() {
     string | null
   >(null);
 
+  // Helper functions for quick challenge buttons
+  const getButtonClass = (answer: string) =>
+    `neo-button-outline border-4 ${
+      quickChallengeAnswer === answer
+        ? isCorrect(answer)
+          ? "bg-green-500 text-white border-white shadow-lg"
+          : "bg-red-500 text-white border-white shadow-lg"
+        : "bg-white text-black border-black hover:bg-gray-100"
+    }`;
+
+  const isSelected = (answer: string) => quickChallengeAnswer === answer;
+
+  const isCorrect = (answer: string) => answer === "zone";
+
   const slidesDefinition = [
     {
       title: "MAN-TO-MAN DEFENSE BASICS",
@@ -556,47 +570,35 @@ export default function ManToManPage() {
               </p>
               <div className="grid grid-cols-3 gap-4">
                 <button
-                  className={`neo-button-outline ${
-                    quickChallengeAnswer === "man"
-                      ? "bg-red-500 text-white border-white"
-                      : ""
-                  }`}
+                  className={getButtonClass("man")}
                   onClick={() => setQuickChallengeAnswer("man")}
                 >
                   MAN-TO-MAN
-                  {quickChallengeAnswer === "man" && (
+                  {isSelected("man") && (
                     <div className="flex justify-center mt-2">
-                      <X size={24} className="text-white" strokeWidth={3} />
+                      <X size={24} className="text-white" strokeWidth={4} />
                     </div>
                   )}
                 </button>
                 <button
-                  className={`neo-button-outline ${
-                    quickChallengeAnswer === "zone"
-                      ? "bg-green-500 text-white border-white"
-                      : ""
-                  }`}
+                  className={getButtonClass("zone")}
                   onClick={() => setQuickChallengeAnswer("zone")}
                 >
                   ZONE
-                  {quickChallengeAnswer === "zone" && (
+                  {isSelected("zone") && (
                     <div className="flex justify-center mt-2">
-                      <Check size={24} className="text-white" strokeWidth={3} />
+                      <Check size={24} className="text-white" strokeWidth={4} />
                     </div>
                   )}
                 </button>
                 <button
-                  className={`neo-button-outline ${
-                    quickChallengeAnswer === "box"
-                      ? "bg-red-500 text-white border-white"
-                      : ""
-                  }`}
+                  className={getButtonClass("box")}
                   onClick={() => setQuickChallengeAnswer("box")}
                 >
                   BOX AND 1
-                  {quickChallengeAnswer === "box" && (
+                  {isSelected("box") && (
                     <div className="flex justify-center mt-2">
-                      <X size={24} className="text-white" strokeWidth={3} />
+                      <X size={24} className="text-white" strokeWidth={4} />
                     </div>
                   )}
                 </button>
@@ -706,12 +708,21 @@ export default function ManToManPage() {
 
           <div className="flex justify-between items-center">
             <button
-              className="neo-button-outline flex items-center gap-2"
-              onClick={prevSlide}
-              disabled={currentSlide === 0}
+              className={`neo-button-outline border-4 ${
+                quickChallengeAnswer
+                  ? quickChallengeAnswer === "man"
+                    ? "bg-red-500 text-white border-white shadow-lg"
+                    : "bg-white text-black border-black hover:bg-gray-100"
+                  : "bg-white text-black border-black hover:bg-gray-100"
+              }`}
+              onClick={() => setQuickChallengeAnswer("man")}
             >
-              <ChevronLeft size={20} />
-              <span>PREVIOUS</span>
+              MAN-TO-MAN
+              {quickChallengeAnswer === "man" && (
+                <div className="flex justify-center mt-2">
+                  <X size={24} className="text-white" strokeWidth={4} />
+                </div>
+              )}
             </button>
 
             <div className="flex items-center gap-2">

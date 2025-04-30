@@ -1,7 +1,15 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { Trophy, Clock, Star, CheckCircle, XCircle, ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  Trophy,
+  Clock,
+  Star,
+  CheckCircle,
+  XCircle,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 import Navbar from "@/components/navbar";
 
 interface Question {
@@ -18,8 +26,12 @@ export default function QuizPage() {
   const [quizStarted, setQuizStarted] = useState(false);
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState<{ [key: string]: string }>({});
-  const [multiAnswers, setMultiAnswers] = useState<{ [key: string]: string[] }>({});
-  const [explanations, setExplanations] = useState<{ [key: number]: string }>({});
+  const [multiAnswers, setMultiAnswers] = useState<{ [key: string]: string[] }>(
+    {}
+  );
+  const [explanations, setExplanations] = useState<{ [key: number]: string }>(
+    {}
+  );
   const [showResults, setShowResults] = useState(false);
   const [showExplanation, setShowExplanation] = useState(false);
   const [timeRemaining, setTimeRemaining] = useState(120);
@@ -46,19 +58,19 @@ export default function QuizPage() {
     if (!quizStarted) return;
     setLoadingQuestion(true);
     fetch(`http://127.0.0.1:5000/quiz/${currentQuestion}`)
-      .then(res => {
+      .then((res) => {
         if (!res.ok) throw new Error(`Status ${res.status}`);
         return res.json();
       })
       .then((q: Question) => {
         setQuestionData(q);
       })
-      .catch(err => console.error('Fetch quiz error', err))
+      .catch((err) => console.error("Fetch quiz error", err))
       .finally(() => setLoadingQuestion(false));
   }, [quizStarted, currentQuestion]);
 
   const startQuiz = async () => {
-    const res = await fetch('http://127.0.0.1:5000/quiz/count');
+    const res = await fetch("http://127.0.0.1:5000/quiz/count");
     const { count } = await res.json();
     setTotalQuestions(count);
     setQuizStarted(true);
@@ -68,14 +80,16 @@ export default function QuizPage() {
   const formatTime = (secs: number) => {
     const m = Math.floor(secs / 60);
     const s = secs % 60;
-    return `${m}:${s < 10 ? '0' : ''}${s}`;
+    return `${m}:${s < 10 ? "0" : ""}${s}`;
   };
 
   const isAnswered = () => {
     const q = questionData;
     if (!q) return false;
-    if (q.type === 'multiple-select') return (multiAnswers[currentQuestion] || []).length > 0;
-    if (q.type === 'matching') return q.items!.every((_, i) => !!answers[`${currentQuestion}-${i}`]);
+    if (q.type === "multiple-select")
+      return (multiAnswers[currentQuestion] || []).length > 0;
+    if (q.type === "matching")
+      return q.items!.every((_, i) => !!answers[`${currentQuestion}-${i}`]);
     return !!answers[currentQuestion];
   };
 
@@ -83,43 +97,48 @@ export default function QuizPage() {
     if (!questionData) return;
     const q = questionData;
     let isCorrect = false;
-    if (q.type === 'multiple-select') {
+    if (q.type === "multiple-select") {
       const sel = multiAnswers[currentQuestion] || [];
-      isCorrect = sel.length === (q.correct as string[]).length && sel.every(a => (q.correct as string[]).includes(a));
-    } else if (q.type === 'multiple-choice-explanation') {
+      isCorrect =
+        sel.length === (q.correct as string[]).length &&
+        sel.every((a) => (q.correct as string[]).includes(a));
+    } else if (q.type === "multiple-choice-explanation") {
       isCorrect = answers[currentQuestion] === q.correct;
-    } else if (q.type === 'matching') {
-      isCorrect = q.items!.every((item, i) => answers[`${currentQuestion}-${i}`] === item.correctAnswer);
+    } else if (q.type === "matching") {
+      isCorrect = q.items!.every(
+        (item, i) => answers[`${currentQuestion}-${i}`] === item.correctAnswer
+      );
     } else {
       isCorrect = answers[currentQuestion] === q.correct;
     }
     if (isCorrect) {
-      setTotalPoints(tp => tp + q.points);
-      setCorrectCount(c => c + 1);
+      setTotalPoints((tp) => tp + q.points);
+      setCorrectCount((c) => c + 1);
     }
 
-    const payload = q.type === 'multiple-select'
-      ? multiAnswers[currentQuestion]
-      : q.type === 'matching'
+    const payload =
+      q.type === "multiple-select"
+        ? multiAnswers[currentQuestion]
+        : q.type === "matching"
         ? q.items!.map((_, i) => answers[`${currentQuestion}-${i}`])
         : answers[currentQuestion];
 
     fetch(`http://127.0.0.1:5000/quiz/${currentQuestion}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ answer: payload })
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ answer: payload }),
     })
-      .then(res => res.json())
+      .then((res) => res.json())
       .then(({ next }) => {
-        if (next.startsWith('/quiz/')) {
-          setCurrentQuestion(parseInt(next.split('/')[2], 10));
+        if (next.startsWith("/quiz/")) {
+          setCurrentQuestion(parseInt(next.split("/")[2], 10));
           setShowExplanation(false);
         } else {
           setShowResults(true);
           setTimerActive(false);
         }
       })
-      .catch(err => console.error('Post quiz error', err));
+      .catch((err) => console.error("Post quiz error", err));
   };
 
   const prevQuestion = () => {
@@ -129,16 +148,16 @@ export default function QuizPage() {
 
   const calculateScore = () => {
     return correctCount;
-  }; 
+  };
 
   const renderQuestion = () => {
     const q = questionData;
     if (!q) return <div className="neo-card">Loading...</div>;
-  
+
     const isCorrectAnswer = (opt: string, correct: string | string[]) => {
       return Array.isArray(correct) ? correct.includes(opt) : opt === correct;
     };
-  
+
     if (q.type === "matching") {
       return (
         <div className="space-y-6">
@@ -146,7 +165,7 @@ export default function QuizPage() {
             <h2 className="text-xl font-bold">{q.question}</h2>
             <div className="neo-badge">+{q.points} POINTS</div>
           </div>
-  
+
           {q.items!.map((item, index) => (
             <div key={index} className="neo-card bg-white">
               <p className="font-bold text-lg mb-4">{item.term}</p>
@@ -161,11 +180,13 @@ export default function QuizPage() {
                         ? "bg-green-200 border-green-500"
                         : "bg-red-200 border-red-500"
                       : "";
-  
+
                   return (
                     <button
                       key={i}
-                      className={`neo-button-outline ${isSelected ? "selected" : ""} ${showColor}`}
+                      className={`neo-button-outline ${
+                        isSelected ? "selected" : ""
+                      } ${showColor}`}
                       onClick={() => setAnswers({ ...answers, [key]: opt })}
                     >
                       {opt}
@@ -175,18 +196,24 @@ export default function QuizPage() {
               </div>
             </div>
           ))}
-  
+
           {showExplanation && (
             <div
               className={`neo-card mt-6 ${
-                q.items!.every((item, i) => answers[`${currentQuestion}-${i}`] === item.correctAnswer)
+                q.items!.every(
+                  (item, i) =>
+                    answers[`${currentQuestion}-${i}`] === item.correctAnswer
+                )
                   ? "bg-[#c1ff00]"
                   : "incorrect-answer"
               }`}
             >
               <div className="flex items-start gap-3">
                 <div className="mt-1">
-                  {q.items!.every((item, i) => answers[`${currentQuestion}-${i}`] === item.correctAnswer) ? (
+                  {q.items!.every(
+                    (item, i) =>
+                      answers[`${currentQuestion}-${i}`] === item.correctAnswer
+                  ) ? (
                     <CheckCircle className="text-black" size={24} />
                   ) : (
                     <XCircle className="text-black" size={24} />
@@ -194,7 +221,11 @@ export default function QuizPage() {
                 </div>
                 <div>
                   <p className="font-bold text-lg">
-                    {q.items!.every((item, i) => answers[`${currentQuestion}-${i}`] === item.correctAnswer)
+                    {q.items!.every(
+                      (item, i) =>
+                        answers[`${currentQuestion}-${i}`] ===
+                        item.correctAnswer
+                    )
                       ? "CORRECT!"
                       : "INCORRECT!"}
                   </p>
@@ -203,10 +234,13 @@ export default function QuizPage() {
                     <ul className="mt-2 space-y-2">
                       {q.items!.map((item, i) => (
                         <li key={i} className="flex items-center gap-2">
-                          <span className="font-bold">{item.term}:</span> {item.correctAnswer}
-                          {answers[`${currentQuestion}-${i}`] !== item.correctAnswer && (
+                          <span className="font-bold">{item.term}:</span>{" "}
+                          {item.correctAnswer}
+                          {answers[`${currentQuestion}-${i}`] !==
+                            item.correctAnswer && (
                             <span className="ml-2 text-black">
-                              (You selected: {answers[`${currentQuestion}-${i}`] || "none"})
+                              (You selected:{" "}
+                              {answers[`${currentQuestion}-${i}`] || "none"})
                             </span>
                           )}
                         </li>
@@ -220,7 +254,7 @@ export default function QuizPage() {
         </div>
       );
     }
-  
+
     if (q.type === "multiple-choice-explanation") {
       return (
         <div className="space-y-6">
@@ -228,7 +262,7 @@ export default function QuizPage() {
             <h2 className="text-xl font-bold">{q.question}</h2>
             <div className="neo-badge">+{q.points} POINTS</div>
           </div>
-  
+
           <div className="grid grid-cols-3 gap-3">
             {q.options!.map((opt, i) => {
               const isSelected = answers[currentQuestion] === opt;
@@ -236,7 +270,9 @@ export default function QuizPage() {
               return (
                 <button
                   key={i}
-                  className={`neo-button-outline ${isSelected ? "selected" : ""} ${
+                  className={`neo-button-outline ${
+                    isSelected ? "selected" : ""
+                  } ${
                     showExplanation
                       ? isCorrect
                         ? "bg-green-200 border-green-500"
@@ -245,29 +281,22 @@ export default function QuizPage() {
                         : ""
                       : ""
                   }`}
-                  onClick={() => setAnswers({ ...answers, [currentQuestion]: opt })}
+                  onClick={() =>
+                    setAnswers({ ...answers, [currentQuestion]: opt })
+                  }
                 >
                   {opt}
                 </button>
               );
             })}
           </div>
-  
-          <div className="neo-card bg-white">
-            <label className="font-bold block mb-2">EXPLAIN YOUR CHOICE:</label>
-            <textarea
-              className="w-full h-24 p-3 border-4 border-black rounded-xl"
-              value={explanations[currentQuestion] || ""}
-              onChange={(e) =>
-                setExplanations({ ...explanations, [currentQuestion]: e.target.value })
-              }
-            />
-          </div>
-  
+
           {showExplanation && (
             <div
               className={`neo-card mt-6 ${
-                answers[currentQuestion] === q.correct ? "bg-[#c1ff00]" : "incorrect-answer"
+                answers[currentQuestion] === q.correct
+                  ? "bg-[#c1ff00]"
+                  : "incorrect-answer"
               }`}
             >
               <div className="flex items-start gap-3">
@@ -280,10 +309,13 @@ export default function QuizPage() {
                 </div>
                 <div>
                   <p className="font-bold text-lg">
-                    {answers[currentQuestion] === q.correct ? "CORRECT!" : "INCORRECT!"}
+                    {answers[currentQuestion] === q.correct
+                      ? "CORRECT!"
+                      : "INCORRECT!"}
                   </p>
                   <p className="mt-2">
-                    The correct answer is <span className="font-bold">{q.correct}</span>.
+                    The correct answer is{" "}
+                    <span className="font-bold">{q.correct}</span>.
                   </p>
                 </div>
               </div>
@@ -292,20 +324,21 @@ export default function QuizPage() {
         </div>
       );
     }
-  
+
     if (q.type === "multiple-select") {
       const selected = multiAnswers[currentQuestion] || [];
       const correct = q.correct as string[];
       const isFullyCorrect =
-        selected.length === correct.length && selected.every((a) => correct.includes(a));
-  
+        selected.length === correct.length &&
+        selected.every((a) => correct.includes(a));
+
       return (
         <div className="space-y-6">
           <div className="flex justify-between items-center">
             <h2 className="text-xl font-bold">{q.question}</h2>
             <div className="neo-badge">+{q.points} POINTS</div>
           </div>
-  
+
           {q.options!.map((opt, i) => {
             const isSelected = selected.includes(opt);
             const isCorrect = correct.includes(opt);
@@ -327,7 +360,10 @@ export default function QuizPage() {
                   const nextSel = isSelected
                     ? selected.filter((a) => a !== opt)
                     : [...selected, opt];
-                  setMultiAnswers({ ...multiAnswers, [currentQuestion]: nextSel });
+                  setMultiAnswers({
+                    ...multiAnswers,
+                    [currentQuestion]: nextSel,
+                  });
                 }}
               >
                 <div
@@ -335,16 +371,20 @@ export default function QuizPage() {
                     isSelected ? "bg-black" : "bg-white"
                   }`}
                 >
-                  {isSelected && <CheckCircle size={16} className="text-white" />}
+                  {isSelected && (
+                    <CheckCircle size={16} className="text-white" />
+                  )}
                 </div>
                 <span>{opt}</span>
               </button>
             );
           })}
-  
+
           {showExplanation && (
             <div
-              className={`neo-card mt-6 ${isFullyCorrect ? "bg-[#c1ff00]" : "incorrect-answer"}`}
+              className={`neo-card mt-6 ${
+                isFullyCorrect ? "bg-[#c1ff00]" : "incorrect-answer"
+              }`}
             >
               <div className="flex items-start gap-3">
                 <div className="mt-1">
@@ -355,7 +395,9 @@ export default function QuizPage() {
                   )}
                 </div>
                 <div>
-                  <p className="font-bold text-lg">{isFullyCorrect ? "CORRECT!" : "INCORRECT!"}</p>
+                  <p className="font-bold text-lg">
+                    {isFullyCorrect ? "CORRECT!" : "INCORRECT!"}
+                  </p>
                   <div className="mt-3">
                     <p className="font-bold">CORRECT ANSWERS:</p>
                     <ul className="mt-2 space-y-2">
@@ -374,21 +416,22 @@ export default function QuizPage() {
         </div>
       );
     }
-  
+
     return <div className="neo-card">Unsupported question type.</div>;
   };
-  
+
   const renderResults = (): JSX.Element => {
     const score = calculateScore();
-    const pct   = totalQuestions > 0
-                  ? Math.round((score / totalQuestions) * 100)
-                  : 0;
+    const pct =
+      totalQuestions > 0 ? Math.round((score / totalQuestions) * 100) : 0;
     return (
       <div className="text-center space-y-8 py-8">
         <h2 className="neo-subheading">QUIZ COMPLETE!</h2>
         <div className="w-40 h-40 rounded-full border-8 border-black mx-auto flex items-center justify-center bg-[#c1ff00]">
           <div>
-            <div className="text-4xl font-bold">{score}/{totalQuestions}</div>
+            <div className="text-4xl font-bold">
+              {score}/{totalQuestions}
+            </div>
             <div className="text-lg font-bold">SCORE</div>
           </div>
         </div>
@@ -420,7 +463,9 @@ export default function QuizPage() {
           </div>
           <div className="neo-card bg-[#c1ff00]">
             <div className="text-center">
-              <div className="text-3xl font-bold">{formatTime(timeRemaining)}</div>
+              <div className="text-3xl font-bold">
+                {formatTime(timeRemaining)}
+              </div>
               <div className="font-bold">TIME REMAINING</div>
             </div>
           </div>
@@ -458,10 +503,13 @@ export default function QuizPage() {
         <main className="flex-1 container mx-auto px-4 py-12">
           <div className="max-w-6xl mx-auto">
             <div className="text-center py-12 space-y-8">
-              <h1 className="neo-subheading">BASKETBALL DEFENSE QUIZ CHALLENGE</h1>
+              <h1 className="neo-subheading">
+                BASKETBALL DEFENSE QUIZ CHALLENGE
+              </h1>
               <p className="text-xl max-w-2xl mx-auto">
-                TEST YOUR KNOWLEDGE OF BASKETBALL DEFENSIVE STRATEGIES WITH THIS TIMED QUIZ. YOU HAVE 2 MINUTES TO
-                ANSWER ALL QUESTIONS. READY TO SHOW YOUR DEFENSIVE IQ?
+                TEST YOUR KNOWLEDGE OF BASKETBALL DEFENSIVE STRATEGIES WITH THIS
+                TIMED QUIZ. YOU HAVE 2 MINUTES TO ANSWER ALL QUESTIONS. READY TO
+                SHOW YOUR DEFENSIVE IQ?
               </p>
 
               <div className="neo-card max-w-2xl mx-auto">
@@ -478,19 +526,25 @@ export default function QuizPage() {
                         <div className="w-8 h-8 bg-[#c1ff00] border-4 border-black rounded-full flex-shrink-0 flex items-center justify-center font-bold">
                           5
                         </div>
-                        <span className="font-bold">QUESTIONS COVERING ALL DEFENSIVE STRATEGIES</span>
+                        <span className="font-bold">
+                          QUESTIONS COVERING ALL DEFENSIVE STRATEGIES
+                        </span>
                       </li>
                       <li className="flex items-center gap-3">
                         <div className="w-8 h-8 bg-[#c1ff00] border-4 border-black rounded-full flex-shrink-0 flex items-center justify-center font-bold">
                           2
                         </div>
-                        <span className="font-bold">MINUTES TO COMPLETE THE QUIZ</span>
+                        <span className="font-bold">
+                          MINUTES TO COMPLETE THE QUIZ
+                        </span>
                       </li>
                       <li className="flex items-center gap-3">
                         <div className="w-8 h-8 bg-[#c1ff00] border-4 border-black rounded-full flex-shrink-0 flex items-center justify-center font-bold">
                           ★
                         </div>
-                        <span className="font-bold">EARN BADGES BASED ON YOUR PERFORMANCE</span>
+                        <span className="font-bold">
+                          EARN BADGES BASED ON YOUR PERFORMANCE
+                        </span>
                       </li>
                     </ul>
                   </div>
@@ -499,7 +553,9 @@ export default function QuizPage() {
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <Trophy size={24} className="text-[#c1ff00]" />
-                        <span className="font-bold text-lg">POTENTIAL BADGES:</span>
+                        <span className="font-bold text-lg">
+                          POTENTIAL BADGES:
+                        </span>
                       </div>
                       <div className="flex gap-3">
                         <div className="neo-badge">DEFENSE MASTER</div>
@@ -509,7 +565,10 @@ export default function QuizPage() {
                   </div>
                 </div>
 
-                <button className="neo-button bg-[#c1ff00] w-full text-xl py-4" onClick={startQuiz}>
+                <button
+                  className="neo-button bg-[#c1ff00] w-full text-xl py-4"
+                  onClick={startQuiz}
+                >
                   START QUIZ
                 </button>
               </div>
@@ -517,8 +576,8 @@ export default function QuizPage() {
           </div>
         </main>
       </div>
-    )
-  } 
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-[#f6f5f5]">
@@ -530,16 +589,30 @@ export default function QuizPage() {
               <div>{/* quiz header, progress bar JSX unchanged */}</div>
               <div className="neo-card mb-8">{renderQuestion()}</div>
               <div className="flex justify-between items-center">
-                <button onClick={prevQuestion} className="neo-button-outline" disabled={currentQuestion===0}>
+                <button
+                  onClick={prevQuestion}
+                  className="neo-button-outline"
+                  disabled={currentQuestion === 0}
+                >
                   <ChevronLeft size={20} /> PREVIOUS
                 </button>
                 {!showExplanation && isAnswered() && (
-                  <button onClick={()=>setShowExplanation(true)} className="neo-button bg-[#c1ff00]">
+                  <button
+                    onClick={() => setShowExplanation(true)}
+                    className="neo-button bg-[#c1ff00]"
+                  >
                     CHECK ANSWER
                   </button>
                 )}
-                <button onClick={nextQuestion} className="neo-button bg-[#c1ff00]" disabled={!isAnswered()}>
-                  {currentQuestion === totalQuestions-1 ? 'FINISH QUIZ' : 'NEXT QUESTION'} <ChevronRight size={20} />
+                <button
+                  onClick={nextQuestion}
+                  className="neo-button bg-[#c1ff00]"
+                  disabled={!isAnswered()}
+                >
+                  {currentQuestion === totalQuestions - 1
+                    ? "FINISH QUIZ"
+                    : "NEXT QUESTION"}{" "}
+                  <ChevronRight size={20} />
                 </button>
               </div>
             </>
