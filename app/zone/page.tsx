@@ -1,8 +1,16 @@
 "use client";
-import { useState, useRef, useEffect } from "react"
-import { useRouter } from "next/navigation"
-import { ChevronLeft, ChevronRight, Play, Info, Trophy, X, Check } from "lucide-react"
-import Navbar from "@/components/navbar"
+import { useState, useRef, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Play,
+  Info,
+  Trophy,
+  X,
+  Check,
+} from "lucide-react";
+import Navbar from "@/components/navbar";
 
 // Interactive player component for drag and drop with zone restrictions
 function DraggablePlayer({
@@ -11,23 +19,38 @@ function DraggablePlayer({
   label,
   zoneArea,
 }: {
-  color: string
-  position: { x: number; y: number }
-  label?: string
-  zoneArea: 
-    // Main diagram zones
-    | "topLeft" | "topRight" | "bottomLeft" | "bottomCenter" | "bottomRight"
+  color: string;
+  position: { x: number; y: number };
+  label?: string;
+  zoneArea: // Main diagram zones
+  | "topLeft"
+    | "topRight"
+    | "bottomLeft"
+    | "bottomCenter"
+    | "bottomRight"
     // 2-3 zone
-    | "top2-3Left" | "top2-3Right" | "bottom2-3Left" | "bottom2-3Center" | "bottom2-3Right"
+    | "top2-3Left"
+    | "top2-3Right"
+    | "bottom2-3Left"
+    | "bottom2-3Center"
+    | "bottom2-3Right"
     // 3-2 zone
-    | "top3-2Left" | "top3-2Center" | "top3-2Right" | "bottom3-2Left" | "bottom3-2Right"
+    | "top3-2Left"
+    | "top3-2Center"
+    | "top3-2Right"
+    | "bottom3-2Left"
+    | "bottom3-2Right"
     // 1-3-1 zone
-    | "top" | "middleLeft" | "middleCenter" | "middleRight" | "bottom"
+    | "top"
+    | "middleLeft"
+    | "middleCenter"
+    | "middleRight"
+    | "bottom";
 }) {
-  const playerRef = useRef<HTMLDivElement>(null)
-  const [playerPosition, setPlayerPosition] = useState(position)
-  const [isDragging, setIsDragging] = useState(false)
-  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 })
+  const playerRef = useRef<HTMLDivElement>(null);
+  const [playerPosition, setPlayerPosition] = useState(position);
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
 
   // Define zone boundaries (in percentages)
   const zoneBoundaries = {
@@ -37,120 +60,146 @@ function DraggablePlayer({
     bottomLeft: { minX: 0, maxX: 29, minY: 50, maxY: 100 },
     bottomCenter: { minX: 33, maxX: 67, minY: 50, maxY: 100 },
     bottomRight: { minX: 67, maxX: 90, minY: 50, maxY: 100 },
-    
+
     // 2-3 zone specific
     "top2-3Left": { minX: 0, maxX: 45, minY: 0, maxY: 50 },
     "top2-3Right": { minX: 50, maxX: 90, minY: 0, maxY: 50 },
     "bottom2-3Left": { minX: 0, maxX: 29, minY: 55, maxY: 90 },
     "bottom2-3Center": { minX: 33, maxX: 67, minY: 55, maxY: 90 },
     "bottom2-3Right": { minX: 67, maxX: 90, minY: 55, maxY: 90 },
-    
+
     // 3-2 zone specific
     "top3-2Left": { minX: 0, maxX: 29, minY: 0, maxY: 50 },
     "top3-2Center": { minX: 33, maxX: 60, minY: 0, maxY: 50 },
     "top3-2Right": { minX: 67, maxX: 90, minY: 0, maxY: 50 },
     "bottom3-2Left": { minX: 0, maxX: 45, minY: 55, maxY: 90 },
     "bottom3-2Right": { minX: 50, maxX: 90, minY: 55, maxY: 90 },
-    
+
     // 1-3-1 zone specific
-    "top": { minX: 0, maxX: 90, minY: 0, maxY: 45 },
-    "middleLeft": { minX: 0, maxX: 33, minY: 50, maxY: 75 },
-    "middleCenter": { minX: 33, maxX: 60, minY: 50, maxY: 75 },
-    "middleRight": { minX: 67, maxX: 90, minY: 50, maxY: 75 },
-    "bottom": { minX: 0, maxX: 90, minY: 75, maxY: 90 }
+    top: { minX: 0, maxX: 90, minY: 0, maxY: 45 },
+    middleLeft: { minX: 0, maxX: 33, minY: 50, maxY: 75 },
+    middleCenter: { minX: 33, maxX: 60, minY: 50, maxY: 75 },
+    middleRight: { minX: 67, maxX: 90, minY: 50, maxY: 75 },
+    bottom: { minX: 0, maxX: 90, minY: 75, maxY: 90 },
   };
 
   const currentZone = zoneBoundaries[zoneArea];
 
   const handleMouseDown = (e: React.MouseEvent) => {
-    e.preventDefault()
+    e.preventDefault();
     if (playerRef.current) {
-      const rect = playerRef.current.getBoundingClientRect()
-      const parentRect = playerRef.current.parentElement?.getBoundingClientRect()
-      
+      const rect = playerRef.current.getBoundingClientRect();
+      const parentRect =
+        playerRef.current.parentElement?.getBoundingClientRect();
+
       if (parentRect) {
         setDragOffset({
           x: e.clientX - rect.left,
-          y: e.clientY - rect.top
-        })
-        setIsDragging(true)
+          y: e.clientY - rect.top,
+        });
+        setIsDragging(true);
       }
     }
-  }
+  };
 
   const handleTouchStart = (e: React.TouchEvent) => {
     if (playerRef.current && e.touches[0]) {
-      const rect = playerRef.current.getBoundingClientRect()
-      const parentRect = playerRef.current.parentElement?.getBoundingClientRect()
-      
+      const rect = playerRef.current.getBoundingClientRect();
+      const parentRect =
+        playerRef.current.parentElement?.getBoundingClientRect();
+
       if (parentRect) {
         setDragOffset({
           x: e.touches[0].clientX - rect.left,
-          y: e.touches[0].clientY - rect.top
-        })
-        setIsDragging(true)
+          y: e.touches[0].clientY - rect.top,
+        });
+        setIsDragging(true);
       }
     }
-  }
+  };
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       if (isDragging && playerRef.current) {
-        const parentRect = playerRef.current.parentElement?.getBoundingClientRect()
+        const parentRect =
+          playerRef.current.parentElement?.getBoundingClientRect();
         if (parentRect) {
           // Calculate position as percentage of parent container
-          const newX = ((e.clientX - parentRect.left - dragOffset.x) / parentRect.width) * 100
-          const newY = ((e.clientY - parentRect.top - dragOffset.y) / parentRect.height) * 100
+          const newX =
+            ((e.clientX - parentRect.left - dragOffset.x) / parentRect.width) *
+            100;
+          const newY =
+            ((e.clientY - parentRect.top - dragOffset.y) / parentRect.height) *
+            100;
 
           // Constrain to zone boundaries
-          const constrainedX = Math.max(currentZone.minX, Math.min(newX, currentZone.maxX))
-          const constrainedY = Math.max(currentZone.minY, Math.min(newY, currentZone.maxY))
+          const constrainedX = Math.max(
+            currentZone.minX,
+            Math.min(newX, currentZone.maxX)
+          );
+          const constrainedY = Math.max(
+            currentZone.minY,
+            Math.min(newY, currentZone.maxY)
+          );
 
-          setPlayerPosition({ x: constrainedX, y: constrainedY })
+          setPlayerPosition({ x: constrainedX, y: constrainedY });
         }
       }
-    }
+    };
 
     const handleTouchMove = (e: TouchEvent) => {
       if (isDragging && e.touches[0] && playerRef.current) {
-        e.preventDefault() // Prevent scrolling while dragging
-        const parentRect = playerRef.current.parentElement?.getBoundingClientRect()
+        e.preventDefault(); // Prevent scrolling while dragging
+        const parentRect =
+          playerRef.current.parentElement?.getBoundingClientRect();
         if (parentRect) {
           // Calculate position as percentage of parent container
-          const newX = ((e.touches[0].clientX - parentRect.left - dragOffset.x) / parentRect.width) * 100
-          const newY = ((e.touches[0].clientY - parentRect.top - dragOffset.y) / parentRect.height) * 100
+          const newX =
+            ((e.touches[0].clientX - parentRect.left - dragOffset.x) /
+              parentRect.width) *
+            100;
+          const newY =
+            ((e.touches[0].clientY - parentRect.top - dragOffset.y) /
+              parentRect.height) *
+            100;
 
           // Constrain to zone boundaries
-          const constrainedX = Math.max(currentZone.minX, Math.min(newX, currentZone.maxX))
-          const constrainedY = Math.max(currentZone.minY, Math.min(newY, currentZone.maxY))
+          const constrainedX = Math.max(
+            currentZone.minX,
+            Math.min(newX, currentZone.maxX)
+          );
+          const constrainedY = Math.max(
+            currentZone.minY,
+            Math.min(newY, currentZone.maxY)
+          );
 
-          setPlayerPosition({ x: constrainedX, y: constrainedY })
+          setPlayerPosition({ x: constrainedX, y: constrainedY });
         }
       }
-    }
+    };
 
     const handleMouseUp = () => {
-      setIsDragging(false)
-    }
+      setIsDragging(false);
+    };
 
     const handleTouchEnd = () => {
-      setIsDragging(false)
-    }
+      setIsDragging(false);
+    };
 
     if (isDragging) {
-      window.addEventListener("mousemove", handleMouseMove)
-      window.addEventListener("mouseup", handleMouseUp)
-      window.addEventListener("touchmove", handleTouchMove, { passive: false })
-      window.addEventListener("touchend", handleTouchEnd)
+      window.addEventListener("mousemove", handleMouseMove);
+      window.addEventListener("mouseup", handleMouseUp);
+      window.addEventListener("touchmove", handleTouchMove, { passive: false });
+      window.addEventListener("touchend", handleTouchEnd);
     }
 
     return () => {
-      window.removeEventListener("mousemove", handleMouseMove)
-      window.removeEventListener("mouseup", handleMouseUp)
-      window.removeEventListener("touchmove", handleTouchMove)
-      window.removeEventListener("touchend", handleTouchEnd)
-    }
-  }, [isDragging, dragOffset, currentZone])
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", handleMouseUp);
+      window.removeEventListener("touchmove", handleTouchMove);
+      window.removeEventListener("touchend", handleTouchEnd);
+    };
+  }, [isDragging, dragOffset, currentZone]);
 
   return (
     <div
@@ -169,70 +218,83 @@ function DraggablePlayer({
     >
       {label && <span className="font-bold text-xs text-white">{label}</span>}
     </div>
-  )
+  );
 }
 
 export default function ZonePage() {
-  const router = useRouter()
-  const LESSON_ID = 2  // maps to Zone defense lesson
-  const [currentSlide, setCurrentSlide] = useState<number | null>(null)
-  const [showHint, setShowHint] = useState(false)
-  const [selectedZone, setSelectedZone] = useState<string | null>(null)
-  const [selectedConcern, setSelectedConcern] = useState<string | null>(null)
-  const [showZoneAnswer, setShowZoneAnswer] = useState(false)
-  const [showConcernAnswer, setShowConcernAnswer] = useState(false)
-  const [activeZoneArea, setActiveZoneArea] = useState<string | null>(null)
-  const [activeZoneType, setActiveZoneType] = useState<"2-3" | "3-2" | "1-3-1">("2-3")
-  const courtRef = useRef<HTMLDivElement>(null)
+  const router = useRouter();
+  const LESSON_ID = 2; // maps to Zone defense lesson
+  const [currentSlide, setCurrentSlide] = useState<number | null>(null);
+  const [showHint, setShowHint] = useState(false);
+  const [selectedZone, setSelectedZone] = useState<string | null>(null);
+  const [selectedConcern, setSelectedConcern] = useState<string | null>(null);
+  const [showZoneAnswer, setShowZoneAnswer] = useState(false);
+  const [showConcernAnswer, setShowConcernAnswer] = useState(false);
+  const [activeZoneArea, setActiveZoneArea] = useState<string | null>(null);
+  const [activeZoneType, setActiveZoneType] = useState<"2-3" | "3-2" | "1-3-1">(
+    "2-3"
+  );
+  const courtRef = useRef<HTMLDivElement>(null);
+
+  const handleAreaClick = (area: string) => {
+    setActiveZoneArea(area === activeZoneArea ? null : area);
+  };
 
   // Fetch persisted slide index on mount
   useEffect(() => {
     fetch(`http://127.0.0.1:5000/learn/${LESSON_ID}`)
-      .then(res => res.json())
-      .then(data => {
-        setCurrentSlide(typeof data.current_slide === 'number' ? data.current_slide : 0)
+      .then((res) => res.json())
+      .then((data) => {
+        setCurrentSlide(
+          typeof data.current_slide === "number" ? data.current_slide : 0
+        );
       })
-      .catch(err => {
-        console.error("Failed to fetch lesson state:", err)
-        setCurrentSlide(0)
-      })
-  }, [])
+      .catch((err) => {
+        console.error("Failed to fetch lesson state:", err);
+        setCurrentSlide(0);
+      });
+  }, []);
 
   // Helper to POST updated slide index and navigate or update locally
   const updateSlide = (newSlide: number) => {
     fetch(`http://127.0.0.1:5000/learn/${LESSON_ID}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ selection: newSlide })
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ selection: newSlide }),
     })
-      .then(res => res.json())
-      .then(data => {
+      .then((res) => res.json())
+      .then((data) => {
         if (newSlide >= slides.length) {
           // last slide: backend returns next path
-          router.push(data.next)
+          router.push(data.next);
         } else {
-          setCurrentSlide(newSlide)
+          setCurrentSlide(newSlide);
         }
       })
-      .catch(err => console.error("Failed to update lesson state:", err))
-  }
+      .catch((err) => console.error("Failed to update lesson state:", err));
+  };
 
   const nextSlide = () => {
     if (currentSlide === slides.length - 1) {
       // last slide → go to your zone defense page
-      router.push("/box-and-1")
+      router.push("/box-and-1");
     } else {
-      updateSlide(currentSlide + 1)
+      updateSlide(currentSlide + 1);
     }
-  }  
+  };
 
   const prevSlide = () => {
-    if (currentSlide !== null && currentSlide > 0) updateSlide(currentSlide - 1)
-  }
+    if (currentSlide !== null && currentSlide > 0)
+      updateSlide(currentSlide - 1);
+  };
 
   // Wait until we have a slide index
   if (currentSlide === null) {
-    return <div className="min-h-screen flex items-center justify-center">Loading...</div>
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        Loading...
+      </div>
+    );
   }
 
   const slides = [
@@ -242,24 +304,25 @@ export default function ZonePage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="md:col-span-2 space-y-6">
             <p className="text-lg">
-              Zone Defense assigns each defender to guard an area of the court rather than a specific player. Defenders
-              move within their designated zones in relation to where the ball moves.
+              Zone Defense assigns each defender to guard an area of the court
+              rather than a specific player. Defenders move within their
+              designated zones in relation to where the ball moves.
             </p>
             <p className="font-bold text-xl">
-              Key Principle: Protect spaces, not faces. Defenders guard areas and any offensive player who enters that
-              area.
+              Key Principle: Protect spaces, not faces. Defenders guard areas
+              and any offensive player who enters that area.
             </p>
 
             <div className="flex flex-col md:flex-row gap-4 my-8">
               {/* Court container - reduced width */}
               <div className="relative h-80 neo-card bg-gray-100 md:w-[370px]">
-                <div 
+                <div
                   className="absolute inset-0 flex flex-col items-center justify-center p-4"
                   style={{
                     backgroundImage: 'url("/court.jpg")',
-                    backgroundSize: 'contain',
-                    backgroundPosition: 'center',
-                    backgroundRepeat: 'no-repeat',
+                    backgroundSize: "contain",
+                    backgroundPosition: "center",
+                    backgroundRepeat: "no-repeat",
                   }}
                 >
                   <div className="text-center mb-4">
@@ -273,36 +336,66 @@ export default function ZonePage() {
                     <div className="absolute w-1/3 h-1/2 bottom-0 left-0 border-r-2 border-dashed border-black"></div>
                     <div className="absolute w-1/3 h-1/2 bottom-0 right-0 border-l-2 border-dashed border-black"></div>
                     <div className="absolute w-1/2 h-1/2 top-0 right-0 border-l-2 border-dashed border-black"></div>
-                    
+
                     {/* Zone players */}
-                    <DraggablePlayer color="bg-[#ff5757]" position={{ x: 25, y: 25 }} label="1" zoneArea="topLeft" />
-                    <DraggablePlayer color="bg-[#ff5757]" position={{ x: 75, y: 25 }} label="2" zoneArea="topRight" />
-                    <DraggablePlayer color="bg-[#ff5757]" position={{ x: 16, y: 75 }} label="3" zoneArea="bottomLeft" />
-                    <DraggablePlayer color="bg-[#ff5757]" position={{ x: 50, y: 75 }} label="4" zoneArea="bottomCenter" />
-                    <DraggablePlayer color="bg-[#ff5757]" position={{ x: 84, y: 75 }} label="5" zoneArea="bottomRight" />
+                    <DraggablePlayer
+                      color="bg-[#ff5757]"
+                      position={{ x: 25, y: 25 }}
+                      label="1"
+                      zoneArea="topLeft"
+                    />
+                    <DraggablePlayer
+                      color="bg-[#ff5757]"
+                      position={{ x: 75, y: 25 }}
+                      label="2"
+                      zoneArea="topRight"
+                    />
+                    <DraggablePlayer
+                      color="bg-[#ff5757]"
+                      position={{ x: 16, y: 75 }}
+                      label="3"
+                      zoneArea="bottomLeft"
+                    />
+                    <DraggablePlayer
+                      color="bg-[#ff5757]"
+                      position={{ x: 50, y: 75 }}
+                      label="4"
+                      zoneArea="bottomCenter"
+                    />
+                    <DraggablePlayer
+                      color="bg-[#ff5757]"
+                      position={{ x: 84, y: 75 }}
+                      label="5"
+                      zoneArea="bottomRight"
+                    />
                   </div>
                   <button
-                  className="absolute bottom-4 right-4 p-2 bg-white border-4 border-black rounded-full hover:bg-[#c1ff00] transition-colors"
-                  onClick={() => {
-                    setShowHint(!showHint)
-                  }}
-                >
-                  <Info size={24} />
-                </button>
-                {showHint && (
-                  <div className="absolute bottom-16 right-4 p-4 bg-white border-4 border-black rounded-xl shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] w-64" style={{ zIndex: 9999 }}>
-                    Each defender is responsible for a specific zone on the court. Drag defenders to position them optimally within their zones.
-                    <div className="absolute w-4 h-4 bg-white border-r-4 border-b-4 border-black transform rotate-45 -bottom-2 right-8"></div>
-                  </div>
-                )}
+                    className="absolute bottom-4 right-4 p-2 bg-white border-4 border-black rounded-full hover:bg-[#c1ff00] transition-colors"
+                    onClick={() => {
+                      setShowHint(!showHint);
+                    }}
+                  >
+                    <Info size={24} />
+                  </button>
+                  {showHint && (
+                    <div
+                      className="absolute bottom-16 right-4 p-4 bg-white border-4 border-black rounded-xl shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] w-64"
+                      style={{ zIndex: 9999 }}
+                    >
+                      Each defender is responsible for a specific zone on the
+                      court. Drag defenders to position them optimally within
+                      their zones.
+                      <div className="absolute w-4 h-4 bg-white border-r-4 border-b-4 border-black transform rotate-45 -bottom-2 right-8"></div>
+                    </div>
+                  )}
                 </div>
-
-
               </div>
 
               {/* Zone area controls - in a separate container */}
               <div className="neo-card bg-white h-80 flex-1 flex flex-col justify-center p-4">
-                <h3 className="font-bold text-xl mb-4 text-center">ZONE RESPONSIBILITIES</h3>
+                <h3 className="font-bold text-xl mb-4 text-center">
+                  ZONE RESPONSIBILITIES
+                </h3>
                 <div className="mt-4 text-center">
                   <div className="grid grid-cols-3 gap-2 max-w-xs mx-auto">
                     <button
@@ -315,7 +408,9 @@ export default function ZonePage() {
                     </button>
                     <button
                       className={`px-2 py-1 border-2 border-black rounded-md text-sm font-bold ${
-                        activeZoneArea === "middle" ? "bg-[#c1ff00]" : "bg-white"
+                        activeZoneArea === "middle"
+                          ? "bg-[#c1ff00]"
+                          : "bg-white"
                       }`}
                       onClick={() => handleAreaClick("middle")}
                     >
@@ -323,7 +418,9 @@ export default function ZonePage() {
                     </button>
                     <button
                       className={`px-2 py-1 border-2 border-black rounded-md text-sm font-bold ${
-                        activeZoneArea === "bottom" ? "bg-[#c1ff00]" : "bg-white"
+                        activeZoneArea === "bottom"
+                          ? "bg-[#c1ff00]"
+                          : "bg-white"
                       }`}
                       onClick={() => handleAreaClick("bottom")}
                     >
@@ -336,10 +433,10 @@ export default function ZonePage() {
                         "Top defenders guard perimeter shooters and prevent easy passes inside."}
                       {activeZoneArea === "middle" &&
                         "Middle defenders shift to help on drives and protect the free throw line."}
-                      {activeZoneArea === "bottom" && "Bottom defenders protect the paint and rebound."}
+                      {activeZoneArea === "bottom" &&
+                        "Bottom defenders protect the paint and rebound."}
                     </div>
                   )}
-                  
                 </div>
               </div>
             </div>
@@ -362,15 +459,24 @@ export default function ZonePage() {
               <dl className="space-y-4">
                 <div className="border-4 border-black rounded-xl p-4 bg-white hover:bg-[#f0f0f0] transition-colors">
                   <dt className="font-bold text-lg">ZONE ROTATION:</dt>
-                  <dd>How defenders shift positions as the ball moves around the perimeter</dd>
+                  <dd>
+                    How defenders shift positions as the ball moves around the
+                    perimeter
+                  </dd>
                 </div>
                 <div className="border-4 border-black rounded-xl p-4 bg-white hover:bg-[#f0f0f0] transition-colors">
                   <dt className="font-bold text-lg">OVERLOAD:</dt>
-                  <dd>An offensive strategy that puts multiple players on one side of the court to stress a zone</dd>
+                  <dd>
+                    An offensive strategy that puts multiple players on one side
+                    of the court to stress a zone
+                  </dd>
                 </div>
                 <div className="border-4 border-black rounded-xl p-4 bg-white hover:bg-[#f0f0f0] transition-colors">
                   <dt className="font-bold text-lg">GAPS:</dt>
-                  <dd>Spaces between defenders that offensive players try to exploit</dd>
+                  <dd>
+                    Spaces between defenders that offensive players try to
+                    exploit
+                  </dd>
                 </div>
               </dl>
             </div>
@@ -384,24 +490,31 @@ export default function ZonePage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="md:col-span-2 space-y-6">
             <p className="text-lg">
-              There are several common zone formations, each with specific strengths and weaknesses:
+              There are several common zone formations, each with specific
+              strengths and weaknesses:
             </p>
 
             <div className="flex gap-4 mb-6">
-                <button
-                className={`neo-button-outline font-bold ${activeZoneType === "2-3" ? "bg-[#c1ff00]" : ""}`}
+              <button
+                className={`neo-button-outline font-bold ${
+                  activeZoneType === "2-3" ? "bg-[#c1ff00]" : ""
+                }`}
                 onClick={() => setActiveZoneType("2-3")}
-                >
-                  2-3 ZONE
-                </button>
-                <button
-                className={`neo-button-outline font-bold ${activeZoneType === "3-2" ? "bg-[#c1ff00]" : ""}`}
+              >
+                2-3 ZONE
+              </button>
+              <button
+                className={`neo-button-outline font-bold ${
+                  activeZoneType === "3-2" ? "bg-[#c1ff00]" : ""
+                }`}
                 onClick={() => setActiveZoneType("3-2")}
-                >
-                  3-2 ZONE
-                </button>
-                <button
-                className={`neo-button-outline font-bold ${activeZoneType === "1-3-1" ? "bg-[#c1ff00]" : ""}`}
+              >
+                3-2 ZONE
+              </button>
+              <button
+                className={`neo-button-outline font-bold ${
+                  activeZoneType === "1-3-1" ? "bg-[#c1ff00]" : ""
+                }`}
                 onClick={() => setActiveZoneType("1-3-1")}
               >
                 1-3-1 ZONE
@@ -410,15 +523,17 @@ export default function ZonePage() {
 
             <div className="flex flex-col md:flex-row gap-6">
               <div className="neo-card">
-                <h3 className="font-bold text-xl mb-4">{activeZoneType} ZONE</h3>
+                <h3 className="font-bold text-xl mb-4">
+                  {activeZoneType} ZONE
+                </h3>
                 <div className="border-4 border-black rounded-xl overflow-hidden flex items-center justify-center relative md:w-[300px] h-[280px]">
-                  <div 
+                  <div
                     className="absolute inset-0"
                     style={{
                       backgroundImage: 'url("/court.jpg")',
-                      backgroundSize: 'contain',
-                      backgroundPosition: 'center',
-                      backgroundRepeat: 'no-repeat'
+                      backgroundSize: "contain",
+                      backgroundPosition: "center",
+                      backgroundRepeat: "no-repeat",
                     }}
                   >
                     {/* Conditionally render the zone dividers and players based on activeZoneType */}
@@ -429,15 +544,40 @@ export default function ZonePage() {
                         <div className="absolute w-1/2 h-3/5 top-0 left-0 border-r-2 border-dashed border-black"></div>
                         <div className="absolute w-1/3 h-2/5 bottom-0 left-0 border-r-2 border-dashed border-black"></div>
                         <div className="absolute w-1/3 h-2/5 bottom-0 right-0 border-l-2 border-dashed border-black"></div>
-                        
+
                         {/* Top zone defenders */}
-                        <DraggablePlayer color="bg-[#ff5757]" position={{ x: 25, y: 45 }} label="1" zoneArea="top2-3Left" />
-                        <DraggablePlayer color="bg-[#ff5757]" position={{ x: 70, y: 45 }} label="2" zoneArea="top2-3Right" />
+                        <DraggablePlayer
+                          color="bg-[#ff5757]"
+                          position={{ x: 25, y: 45 }}
+                          label="1"
+                          zoneArea="top2-3Left"
+                        />
+                        <DraggablePlayer
+                          color="bg-[#ff5757]"
+                          position={{ x: 70, y: 45 }}
+                          label="2"
+                          zoneArea="top2-3Right"
+                        />
 
                         {/* Bottom zone defenders */}
-                        <DraggablePlayer color="bg-[#ff5757]" position={{ x: 16, y: 75 }} label="3" zoneArea="bottom2-3Left" />
-                        <DraggablePlayer color="bg-[#ff5757]" position={{ x: 50, y: 75 }} label="4" zoneArea="bottom2-3Center" />
-                        <DraggablePlayer color="bg-[#ff5757]" position={{ x: 84, y: 75 }} label="5" zoneArea="bottom2-3Right" />
+                        <DraggablePlayer
+                          color="bg-[#ff5757]"
+                          position={{ x: 16, y: 75 }}
+                          label="3"
+                          zoneArea="bottom2-3Left"
+                        />
+                        <DraggablePlayer
+                          color="bg-[#ff5757]"
+                          position={{ x: 50, y: 75 }}
+                          label="4"
+                          zoneArea="bottom2-3Center"
+                        />
+                        <DraggablePlayer
+                          color="bg-[#ff5757]"
+                          position={{ x: 84, y: 75 }}
+                          label="5"
+                          zoneArea="bottom2-3Right"
+                        />
                       </>
                     )}
 
@@ -448,15 +588,40 @@ export default function ZonePage() {
                         <div className="absolute w-1/3 h-3/5 top-0 left-0 border-r-2 border-dashed border-black"></div>
                         <div className="absolute w-1/3 h-3/5 top-0 right-0 border-l-2 border-dashed border-black"></div>
                         <div className="absolute w-1/2 h-2/5 bottom-0 left-0 border-r-2 border-dashed border-black"></div>
-                        
+
                         {/* Top zone defenders */}
-                        <DraggablePlayer color="bg-[#ff5757]" position={{ x: 16, y: 45 }} label="1" zoneArea="top3-2Left" />
-                        <DraggablePlayer color="bg-[#ff5757]" position={{ x: 50, y: 45 }} label="2" zoneArea="top3-2Center" />
-                        <DraggablePlayer color="bg-[#ff5757]" position={{ x: 84, y: 45 }} label="3" zoneArea="top3-2Right" />
+                        <DraggablePlayer
+                          color="bg-[#ff5757]"
+                          position={{ x: 16, y: 45 }}
+                          label="1"
+                          zoneArea="top3-2Left"
+                        />
+                        <DraggablePlayer
+                          color="bg-[#ff5757]"
+                          position={{ x: 50, y: 45 }}
+                          label="2"
+                          zoneArea="top3-2Center"
+                        />
+                        <DraggablePlayer
+                          color="bg-[#ff5757]"
+                          position={{ x: 84, y: 45 }}
+                          label="3"
+                          zoneArea="top3-2Right"
+                        />
 
                         {/* Bottom zone defenders */}
-                        <DraggablePlayer color="bg-[#ff5757]" position={{ x: 30, y: 75 }} label="4" zoneArea="bottom3-2Left" />
-                        <DraggablePlayer color="bg-[#ff5757]" position={{ x: 70, y: 75 }} label="5" zoneArea="bottom3-2Right" />
+                        <DraggablePlayer
+                          color="bg-[#ff5757]"
+                          position={{ x: 30, y: 75 }}
+                          label="4"
+                          zoneArea="bottom3-2Left"
+                        />
+                        <DraggablePlayer
+                          color="bg-[#ff5757]"
+                          position={{ x: 70, y: 75 }}
+                          label="5"
+                          zoneArea="bottom3-2Right"
+                        />
                       </>
                     )}
 
@@ -467,17 +632,42 @@ export default function ZonePage() {
                         <div className="absolute w-1/3 h-1/3 top-1/2 left-0 border-r-2 border-dashed border-black"></div>
                         <div className="absolute w-full h-4/5 top-0 border-b-2 border-dashed border-black"></div>
                         <div className="absolute w-1/3 h-1/3 top-1/2 right-0 border-l-2 border-dashed border-black"></div>
-                        
+
                         {/* Top zone defender */}
-                        <DraggablePlayer color="bg-[#ff5757]" position={{ x: 50, y: 15 }} label="1" zoneArea="top" />
+                        <DraggablePlayer
+                          color="bg-[#ff5757]"
+                          position={{ x: 50, y: 15 }}
+                          label="1"
+                          zoneArea="top"
+                        />
 
                         {/* Middle zone defenders */}
-                        <DraggablePlayer color="bg-[#ff5757]" position={{ x: 16, y: 50 }} label="2" zoneArea="middleLeft" />
-                        <DraggablePlayer color="bg-[#ff5757]" position={{ x: 50, y: 50 }} label="3" zoneArea="middleCenter" />
-                        <DraggablePlayer color="bg-[#ff5757]" position={{ x: 84, y: 50 }} label="4" zoneArea="middleRight" />
+                        <DraggablePlayer
+                          color="bg-[#ff5757]"
+                          position={{ x: 16, y: 50 }}
+                          label="2"
+                          zoneArea="middleLeft"
+                        />
+                        <DraggablePlayer
+                          color="bg-[#ff5757]"
+                          position={{ x: 50, y: 50 }}
+                          label="3"
+                          zoneArea="middleCenter"
+                        />
+                        <DraggablePlayer
+                          color="bg-[#ff5757]"
+                          position={{ x: 84, y: 50 }}
+                          label="4"
+                          zoneArea="middleRight"
+                        />
 
                         {/* Bottom zone defender */}
-                        <DraggablePlayer color="bg-[#ff5757]" position={{ x: 50, y: 85 }} label="5" zoneArea="bottom" />
+                        <DraggablePlayer
+                          color="bg-[#ff5757]"
+                          position={{ x: 50, y: 85 }}
+                          label="5"
+                          zoneArea="bottom"
+                        />
                       </>
                     )}
                   </div>
@@ -487,12 +677,14 @@ export default function ZonePage() {
               {/* Pros and cons for the selected zone */}
               <div className="flex-1 neo-card">
                 <h3 className="font-bold text-xl mb-4">PROS & CONS</h3>
-                
+
                 {activeZoneType === "2-3" && (
                   <div className="space-y-4">
                     <div>
                       <h4 className="font-bold flex items-center gap-2">
-                        <div className="w-6 h-6 rounded-full bg-[#c1ff00] flex items-center justify-center text-black font-bold text-xs">+</div>
+                        <div className="w-6 h-6 rounded-full bg-[#c1ff00] flex items-center justify-center text-black font-bold text-xs">
+                          +
+                        </div>
                         PROS:
                       </h4>
                       <ul className="ml-8 list-disc space-y-1 mt-2">
@@ -502,10 +694,12 @@ export default function ZonePage() {
                         <li>Limits drives to the basket</li>
                       </ul>
                     </div>
-                    
+
                     <div>
                       <h4 className="font-bold flex items-center gap-2">
-                        <div className="w-6 h-6 rounded-full bg-[#ff5757] flex items-center justify-center text-black font-bold text-xs">-</div>
+                        <div className="w-6 h-6 rounded-full bg-[#ff5757] flex items-center justify-center text-black font-bold text-xs">
+                          -
+                        </div>
                         CONS:
                       </h4>
                       <ul className="ml-8 list-disc space-y-1 mt-2">
@@ -515,10 +709,13 @@ export default function ZonePage() {
                         <li>Can be beaten by quick ball movement</li>
                       </ul>
                     </div>
-                    
+
                     <div className="border-2 border-black p-3 rounded-lg mt-4 bg-gray-50">
                       <p className="font-bold">BEST USED AGAINST:</p>
-                      <p>Teams with strong inside play but weak perimeter shooting</p>
+                      <p>
+                        Teams with strong inside play but weak perimeter
+                        shooting
+                      </p>
                     </div>
                   </div>
                 )}
@@ -527,7 +724,9 @@ export default function ZonePage() {
                   <div className="space-y-4">
                     <div>
                       <h4 className="font-bold flex items-center gap-2">
-                        <div className="w-6 h-6 rounded-full bg-[#c1ff00] flex items-center justify-center text-black font-bold text-xs">+</div>
+                        <div className="w-6 h-6 rounded-full bg-[#c1ff00] flex items-center justify-center text-black font-bold text-xs">
+                          +
+                        </div>
                         PROS:
                       </h4>
                       <ul className="ml-8 list-disc space-y-1 mt-2">
@@ -537,10 +736,12 @@ export default function ZonePage() {
                         <li>Defends against skip passes well</li>
                       </ul>
                     </div>
-                    
+
                     <div>
                       <h4 className="font-bold flex items-center gap-2">
-                        <div className="w-6 h-6 rounded-full bg-[#ff5757] flex items-center justify-center text-black font-bold text-xs">-</div>
+                        <div className="w-6 h-6 rounded-full bg-[#ff5757] flex items-center justify-center text-black font-bold text-xs">
+                          -
+                        </div>
                         CONS:
                       </h4>
                       <ul className="ml-8 list-disc space-y-1 mt-2">
@@ -550,10 +751,13 @@ export default function ZonePage() {
                         <li>Susceptible to baseline drives</li>
                       </ul>
                     </div>
-                    
+
                     <div className="border-2 border-black p-3 rounded-lg mt-4 bg-gray-50">
                       <p className="font-bold">BEST USED AGAINST:</p>
-                      <p>Teams with multiple perimeter shooters but limited post presence</p>
+                      <p>
+                        Teams with multiple perimeter shooters but limited post
+                        presence
+                      </p>
                     </div>
                   </div>
                 )}
@@ -562,7 +766,9 @@ export default function ZonePage() {
                   <div className="space-y-4">
                     <div>
                       <h4 className="font-bold flex items-center gap-2">
-                        <div className="w-6 h-6 rounded-full bg-[#c1ff00] flex items-center justify-center text-black font-bold text-xs">+</div>
+                        <div className="w-6 h-6 rounded-full bg-[#c1ff00] flex items-center justify-center text-black font-bold text-xs">
+                          +
+                        </div>
                         PROS:
                       </h4>
                       <ul className="ml-8 list-disc space-y-1 mt-2">
@@ -572,10 +778,12 @@ export default function ZonePage() {
                         <li>Good balance of inside/outside coverage</li>
                       </ul>
                     </div>
-                    
+
                     <div>
                       <h4 className="font-bold flex items-center gap-2">
-                        <div className="w-6 h-6 rounded-full bg-[#ff5757] flex items-center justify-center text-black font-bold text-xs">-</div>
+                        <div className="w-6 h-6 rounded-full bg-[#ff5757] flex items-center justify-center text-black font-bold text-xs">
+                          -
+                        </div>
                         CONS:
                       </h4>
                       <ul className="ml-8 list-disc space-y-1 mt-2">
@@ -585,10 +793,13 @@ export default function ZonePage() {
                         <li>Challenging to implement effectively</li>
                       </ul>
                     </div>
-                    
+
                     <div className="border-2 border-black p-3 rounded-lg mt-4 bg-gray-50">
                       <p className="font-bold">BEST USED AGAINST:</p>
-                      <p>Teams with poor ball handling or teams that struggle with pressure</p>
+                      <p>
+                        Teams with poor ball handling or teams that struggle
+                        with pressure
+                      </p>
                     </div>
                   </div>
                 )}
@@ -602,15 +813,24 @@ export default function ZonePage() {
               <dl className="space-y-4">
                 <div className="border-4 border-black rounded-xl p-4 bg-white hover:bg-[#f0f0f0] transition-colors">
                   <dt className="font-bold text-lg">ZONE FORMATION:</dt>
-                  <dd>The numerical arrangement of defenders (e.g., 2-3, 3-2, 1-3-1)</dd>
+                  <dd>
+                    The numerical arrangement of defenders (e.g., 2-3, 3-2,
+                    1-3-1)
+                  </dd>
                 </div>
                 <div className="border-4 border-black rounded-xl p-4 bg-white hover:bg-[#f0f0f0] transition-colors">
                   <dt className="font-bold text-lg">SKIP PASS:</dt>
-                  <dd>A pass that "skips" over a defender to attack zone weaknesses</dd>
+                  <dd>
+                    A pass that "skips" over a defender to attack zone
+                    weaknesses
+                  </dd>
                 </div>
                 <div className="border-4 border-black rounded-xl p-4 bg-white hover:bg-[#f0f0f0] transition-colors">
                   <dt className="font-bold text-lg">HIGH POST:</dt>
-                  <dd>The area near the free throw line, often a weak spot in zone defenses</dd>
+                  <dd>
+                    The area near the free throw line, often a weak spot in zone
+                    defenses
+                  </dd>
                 </div>
               </dl>
             </div>
@@ -647,7 +867,10 @@ export default function ZonePage() {
                       <div className="flex items-center gap-1">
                         <span className="font-bold">{pro.score}/10</span>
                         <div className="w-16 h-4 bg-gray-200 border-2 border-black rounded-full overflow-hidden">
-                          <div className="h-full bg-[#c1ff00]" style={{ width: `${pro.score * 10}%` }}></div>
+                          <div
+                            className="h-full bg-[#c1ff00]"
+                            style={{ width: `${pro.score * 10}%` }}
+                          ></div>
                         </div>
                       </div>
                     </div>
@@ -666,7 +889,10 @@ export default function ZonePage() {
                 <div className="space-y-3">
                   {[
                     { text: "Vulnerable to outside shooters", score: 8 },
-                    { text: "Communication breakdowns hurt coverage", score: 7 },
+                    {
+                      text: "Communication breakdowns hurt coverage",
+                      score: 7,
+                    },
                     { text: "Difficult to match up in transition", score: 6 },
                     { text: "Can lead to rebounding challenges", score: 5 },
                   ].map((con, index) => (
@@ -678,7 +904,10 @@ export default function ZonePage() {
                       <div className="flex items-center gap-1">
                         <span className="font-bold">{con.score}/10</span>
                         <div className="w-16 h-4 bg-gray-200 border-2 border-black rounded-full overflow-hidden">
-                          <div className="h-full bg-[#ff5757]" style={{ width: `${con.score * 10}%` }}></div>
+                          <div
+                            className="h-full bg-[#ff5757]"
+                            style={{ width: `${con.score * 10}%` }}
+                          ></div>
                         </div>
                       </div>
                     </div>
@@ -690,8 +919,8 @@ export default function ZonePage() {
             <div className="neo-card bg-[#3366cc] text-white">
               <h3 className="font-bold text-xl mb-4">ZONE DEFENSE SCENARIO:</h3>
               <p className="mb-6">
-                Your team is facing an opponent with excellent 3-point shooters. What's your biggest concern with using
-                a zone defense?
+                Your team is facing an opponent with excellent 3-point shooters.
+                What's your biggest concern with using a zone defense?
               </p>
               <div className="grid grid-cols-2 gap-4">
                 <button
@@ -708,13 +937,21 @@ export default function ZonePage() {
                   VULNERABLE TO OUTSIDE SHOOTING
                   {selectedConcern === "vulnerable" && showConcernAnswer && (
                     <div className="flex justify-center mt-2">
-                      <Check size={24} className="text-[#3366cc]" strokeWidth={3} />
+                      <Check
+                        size={24}
+                        className="text-[#3366cc]"
+                        strokeWidth={3}
+                      />
                     </div>
                   )}
                 </button>
                 <button
                   className={`neo-button-outline text-white border-white ${
-                    selectedConcern === "rebound" ? (showConcernAnswer ? "bg-[#ff5757]" : "bg-[#3366cc]") : ""
+                    selectedConcern === "rebound"
+                      ? showConcernAnswer
+                        ? "bg-[#ff5757]"
+                        : "bg-[#3366cc]"
+                      : ""
                   }`}
                   onClick={() => handleConcernSelect("rebound")}
                   disabled={showConcernAnswer}
@@ -728,7 +965,11 @@ export default function ZonePage() {
                 </button>
                 <button
                   className={`neo-button-outline text-white border-white ${
-                    selectedConcern === "demanding" ? (showConcernAnswer ? "bg-[#ff5757]" : "bg-[#3366cc]") : ""
+                    selectedConcern === "demanding"
+                      ? showConcernAnswer
+                        ? "bg-[#ff5757]"
+                        : "bg-[#3366cc]"
+                      : ""
                   }`}
                   onClick={() => handleConcernSelect("demanding")}
                   disabled={showConcernAnswer}
@@ -742,7 +983,11 @@ export default function ZonePage() {
                 </button>
                 <button
                   className={`neo-button-outline text-white border-white ${
-                    selectedConcern === "communicate" ? (showConcernAnswer ? "bg-[#ff5757]" : "bg-[#3366cc]") : ""
+                    selectedConcern === "communicate"
+                      ? showConcernAnswer
+                        ? "bg-[#ff5757]"
+                        : "bg-[#3366cc]"
+                      : ""
                   }`}
                   onClick={() => handleConcernSelect("communicate")}
                   disabled={showConcernAnswer}
@@ -764,15 +1009,23 @@ export default function ZonePage() {
               <dl className="space-y-4">
                 <div className="border-4 border-black rounded-xl p-4 bg-white hover:bg-[#f0f0f0] transition-colors">
                   <dt className="font-bold text-lg">ZONE TRAP:</dt>
-                  <dd>When two zone defenders converge to trap a ball handler</dd>
+                  <dd>
+                    When two zone defenders converge to trap a ball handler
+                  </dd>
                 </div>
                 <div className="border-4 border-black rounded-xl p-4 bg-white hover:bg-[#f0f0f0] transition-colors">
                   <dt className="font-bold text-lg">FLASH:</dt>
-                  <dd>An offensive move where a player quickly cuts to an open spot in the zone</dd>
+                  <dd>
+                    An offensive move where a player quickly cuts to an open
+                    spot in the zone
+                  </dd>
                 </div>
                 <div className="border-4 border-black rounded-xl p-4 bg-white hover:bg-[#f0f0f0] transition-colors">
                   <dt className="font-bold text-lg">MATCHUP ZONE:</dt>
-                  <dd>A hybrid defense that combines zone principles with man-to-man concepts</dd>
+                  <dd>
+                    A hybrid defense that combines zone principles with
+                    man-to-man concepts
+                  </dd>
                 </div>
               </dl>
             </div>
@@ -780,8 +1033,8 @@ export default function ZonePage() {
         </div>
       ),
     },
-  ]
-  const slide = slides[currentSlide]
+  ];
+  const slide = slides[currentSlide];
 
   return (
     <div className="min-h-screen flex flex-col bg-[#f6f5f5]">
@@ -822,13 +1075,14 @@ export default function ZonePage() {
               className="neo-button flex items-center gap-2 bg-[#c1ff00] hover:bg-[#d8ff66] transition-colors"
               onClick={nextSlide}
             >
-              <span>{currentSlide === slides.length - 1 ? "NEXT DEFENSE" : "NEXT"}</span>
+              <span>
+                {currentSlide === slides.length - 1 ? "NEXT DEFENSE" : "NEXT"}
+              </span>
               <ChevronRight size={20} />
             </button>
           </div>
         </div>
       </main>
     </div>
-  )
+  );
 }
-
