@@ -561,49 +561,6 @@ export default function ManToManPage() {
                 <FlipCard key={index} text={item.text} type={item.type} />
               ))}
             </div>
-
-            <div className="neo-card bg-[#3366cc] text-white">
-              <h3 className="font-bold text-xl mb-4">QUICK CHALLENGE:</h3>
-              <p className="mb-6">
-                Which defensive strategy would you choose if your team has
-                excellent individual defenders but limited stamina?
-              </p>
-              <div className="grid grid-cols-3 gap-4">
-                <button
-                  className={getButtonClass("man")}
-                  onClick={() => setQuickChallengeAnswer("man")}
-                >
-                  MAN-TO-MAN
-                  {isSelected("man") && (
-                    <div className="flex justify-center mt-2">
-                      <X size={24} className="text-white" strokeWidth={4} />
-                    </div>
-                  )}
-                </button>
-                <button
-                  className={getButtonClass("zone")}
-                  onClick={() => setQuickChallengeAnswer("zone")}
-                >
-                  ZONE
-                  {isSelected("zone") && (
-                    <div className="flex justify-center mt-2">
-                      <Check size={24} className="text-white" strokeWidth={4} />
-                    </div>
-                  )}
-                </button>
-                <button
-                  className={getButtonClass("box")}
-                  onClick={() => setQuickChallengeAnswer("box")}
-                >
-                  BOX AND 1
-                  {isSelected("box") && (
-                    <div className="flex justify-center mt-2">
-                      <X size={24} className="text-white" strokeWidth={4} />
-                    </div>
-                  )}
-                </button>
-              </div>
-            </div>
           </div>
 
           <div className="md:col-span-1">
