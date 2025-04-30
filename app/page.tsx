@@ -35,14 +35,21 @@ export default function HomePage() {
                     IQ
                   </h1>
                   <p className="text-white text-xl mb-8">
-                    Master the art of basketball defense with our interactive learning platform. Level up your game!
+                    Master the art of basketball defense with our interactive
+                    learning platform. Level up your game!
                   </p>
 
                   <div className="flex gap-4 mb-8">
-                    <Link href={startPath} className="inline-block neo-button text-black">
+                    <Link
+                      href="/one-on-one"
+                      className="inline-block neo-button text-black"
+                    >
                       START LEARNING NOW
                     </Link>
-                    <Link href="/quiz/0" className="inline-block neo-button-outline text-black">
+                    <Link
+                      href="/quiz/0"
+                      className="inline-block neo-button-outline text-black"
+                    >
                       TAKE THE QUIZ
                     </Link>
                   </div>
@@ -54,23 +61,35 @@ export default function HomePage() {
                   </div>
 
                   <div className="glass-card p-6 relative z-10">
-                    <h2 className="font-archivo text-2xl font-bold mb-4 text-white">LEARNING STATS</h2>
+                    <h2 className="font-archivo text-2xl font-bold mb-4 text-white">
+                      LEARNING STATS
+                    </h2>
                     <div className="grid grid-cols-2 gap-4">
                       <div className="p-3 border-4 border-black rounded-lg bg-[#c1ff00]">
-                        <div className="text-3xl font-bold text-black">5.2K</div>
-                        <div className="text-sm font-bold text-black">LEARNERS</div>
+                        <div className="text-3xl font-bold text-black">
+                          5.2K
+                        </div>
+                        <div className="text-sm font-bold text-black">
+                          LEARNERS
+                        </div>
                       </div>
                       <div className="p-3 border-4 border-black rounded-lg bg-white">
                         <div className="text-3xl font-bold text-black">87%</div>
-                        <div className="text-sm font-bold text-black">AVG SCORE</div>
+                        <div className="text-sm font-bold text-black">
+                          AVG SCORE
+                        </div>
                       </div>
                       <div className="p-3 border-4 border-black rounded-lg bg-white">
                         <div className="text-3xl font-bold text-black">92%</div>
-                        <div className="text-sm font-bold text-black">COMPLETION</div>
+                        <div className="text-sm font-bold text-black">
+                          COMPLETION
+                        </div>
                       </div>
                       <div className="p-3 border-4 border-black rounded-lg bg-[#c1ff00]">
                         <div className="text-3xl font-bold text-black">15m</div>
-                        <div className="text-sm font-bold text-black">AVG TIME</div>
+                        <div className="text-sm font-bold text-black">
+                          AVG TIME
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -181,7 +200,9 @@ function DefenseCard({
             <Star size={16} className="text-[#c1ff00]" />
             <span className="font-bold text-[#c1ff00]">{points} PTS</span>
           </div>
-          <div className="flex items-center gap-2 bg-[#002387] p-2 rounded-full border-2 border-[#c1ff00]">{icon}</div>
+          <div className="flex items-center gap-2 bg-[#002387] p-2 rounded-full border-2 border-[#c1ff00]">
+            {icon}
+          </div>
         </div>
 
         <Link
