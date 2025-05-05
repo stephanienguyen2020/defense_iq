@@ -42,6 +42,8 @@ export default function QuizPage() {
   const [questionData, setQuestionData] = useState<Question | null>(null);
   const [loadingQuestion, setLoadingQuestion] = useState(false);
   const [totalQuestions, setTotalQuestions] = useState<number>(0);
+  const [answeredQuestions, setAnsweredQuestions] = useState<Set<number>>(new Set());
+
 
   useEffect(() => {
     let timer: NodeJS.Timeout;
@@ -187,7 +189,10 @@ export default function QuizPage() {
                       className={`neo-button-outline ${
                         isSelected ? "selected" : ""
                       } ${showColor}`}
-                      onClick={() => setAnswers({ ...answers, [key]: opt })}
+                      onClick={() => {
+                        if (answeredQuestions.has(currentQuestion)) return;
+                        setAnswers({ ...answers, [key]: opt });
+                      }}
                     >
                       {opt}
                     </button>
@@ -281,9 +286,10 @@ export default function QuizPage() {
                         : ""
                       : ""
                   }`}
-                  onClick={() =>
-                    setAnswers({ ...answers, [currentQuestion]: opt })
-                  }
+                  onClick={() => {
+                    if (answeredQuestions.has(currentQuestion)) return;
+                    setAnswers({ ...answers, [currentQuestion]: opt });
+                  }}
                 >
                   {opt}
                 </button>
@@ -357,6 +363,7 @@ export default function QuizPage() {
                     : ""
                 }`}
                 onClick={() => {
+                  if (answeredQuestions.has(currentQuestion)) return;
                   const nextSel = isSelected
                     ? selected.filter((a) => a !== opt)
                     : [...selected, opt];
@@ -596,9 +603,12 @@ export default function QuizPage() {
                 >
                   <ChevronLeft size={20} /> PREVIOUS
                 </button>
-                {!showExplanation && isAnswered() && (
+                {!answeredQuestions.has(currentQuestion) && isAnswered() && (
                   <button
-                    onClick={() => setShowExplanation(true)}
+                    onClick={() => {
+                      setShowExplanation(true);
+                      setAnsweredQuestions(prev => new Set(prev).add(currentQuestion));
+                    }}
                     className="neo-button bg-[#c1ff00]"
                   >
                     CHECK ANSWER
