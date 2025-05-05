@@ -15,9 +15,9 @@ QUESTIONS = [
         'type': 'matching',
         'question': 'MATCH THE DEFENSE TO ITS DESCRIPTION',
         'items': [
-            { 'term': 'Each player guards one opponent', 'options': ['One-on-one','Zone','Box and 1'], 'correct': 'One-on-one' },
-            { 'term': 'Guards space instead of players', 'options': ['One-on-one','Zone','Box and 1'], 'correct': 'Zone' },
-            { 'term': 'A mix: 4 in zone, 1 on star player', 'options': ['One-on-one','Zone','Box and 1'], 'correct': 'Box and 1' }
+            { 'term': 'Each player guards one opponent', 'options': ['One-on-one','Zone','Box and 1'], 'correctAnswer': 'One-on-one' },
+            { 'term': 'Guards space instead of players', 'options': ['One-on-one','Zone','Box and 1'], 'correctAnswer': 'Zone' },
+            { 'term': 'A mix: 4 in zone, 1 on star player', 'options': ['One-on-one','Zone','Box and 1'], 'correctAnswer': 'Box and 1' }
         ],
         'points': 20
     },
