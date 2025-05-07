@@ -387,7 +387,7 @@ export default function ManToManPage() {
           <div className="md:col-span-2 space-y-6">
             <p className="text-lg">
               Man-to-Man Defense has each defender assigned to a designated
-              offensive player rather than an area on the court.
+              offensive player rather than an area on the court to create ball pressure.
             </p>
             <p className="font-bold text-xl">
               Key Principle: Each defender is responsible for an opponent, no
@@ -409,11 +409,11 @@ export default function ManToManPage() {
             <div className="neo-card bg-gray-100 h-full">
               <h2 className="font-bold text-xl mb-4">KEY TERMINOLOGY:</h2>
               <dl className="space-y-4">
-                <div className="border-4 border-black rounded-xl p-4 bg-white hover:bg-[#f0f0f0] transition-colors">
-                  <dt className="font-bold text-lg">HELP-SIDE DEFENSE:</dt>
+              <div className="border-4 border-black rounded-xl p-4 bg-white hover:bg-[#f0f0f0] transition-colors">
+                  <dt className="font-bold text-lg">BALL PRESSURE:</dt>
                   <dd>
-                    Positioning yourself to help teammates while still guarding
-                    your player
+                    Applying defensive pressure on the ball handler to limit
+                    their options
                   </dd>
                 </div>
                 <div className="border-4 border-black rounded-xl p-4 bg-white hover:bg-[#f0f0f0] transition-colors">
@@ -438,7 +438,6 @@ export default function ManToManPage() {
     {
       title: "DEFENSIVE STANCE & POSITIONING",
       content: (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="md:col-span-2 space-y-6">
             <p className="text-lg">
               Proper defensive stance is the foundation of good man-to-man
@@ -507,41 +506,11 @@ export default function ManToManPage() {
             </div>
           </div>
 
-          <div className="md:col-span-1">
-            <div className="neo-card bg-gray-100 h-full">
-              <h2 className="font-bold text-xl mb-4">KEY TERMINOLOGY:</h2>
-              <dl className="space-y-4">
-                <div className="border-4 border-black rounded-xl p-4 bg-white hover:bg-[#f0f0f0] transition-colors">
-                  <dt className="font-bold text-lg">BALL PRESSURE:</dt>
-                  <dd>
-                    Applying defensive pressure on the ball handler to limit
-                    their options
-                  </dd>
-                </div>
-                <div className="border-4 border-black rounded-xl p-4 bg-white hover:bg-[#f0f0f0] transition-colors">
-                  <dt className="font-bold text-lg">DEFENSIVE SLIDE:</dt>
-                  <dd>
-                    Moving laterally without crossing your feet to maintain
-                    defensive position
-                  </dd>
-                </div>
-                <div className="border-4 border-black rounded-xl p-4 bg-white hover:bg-[#f0f0f0] transition-colors">
-                  <dt className="font-bold text-lg">RECOVERY:</dt>
-                  <dd>
-                    Quickly getting back into defensive position after being
-                    beaten
-                  </dd>
-                </div>
-              </dl>
-            </div>
-          </div>
-        </div>
       ),
     },
     {
       title: "PROS & CONS",
       content: (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="md:col-span-2 space-y-8">
             <p className="text-center font-bold text-xl bg-[#c1ff00] border-4 border-black rounded-xl p-3">
               TAP EACH CARD TO REVEAL IF IT'S A PRO OR CON OF MAN-TO-MAN DEFENSE
@@ -562,36 +531,6 @@ export default function ManToManPage() {
               ))}
             </div>
           </div>
-
-          <div className="md:col-span-1">
-            <div className="neo-card bg-gray-100 h-full">
-              <h2 className="font-bold text-xl mb-4">KEY TERMINOLOGY:</h2>
-              <dl className="space-y-4">
-                <div className="border-4 border-black rounded-xl p-4 bg-white hover:bg-[#f0f0f0] transition-colors">
-                  <dt className="font-bold text-lg">SWITCHING:</dt>
-                  <dd>
-                    Defenders exchanging assignments when offensive players
-                    cross or set screens
-                  </dd>
-                </div>
-                <div className="border-4 border-black rounded-xl p-4 bg-white hover:bg-[#f0f0f0] transition-colors">
-                  <dt className="font-bold text-lg">HEDGING:</dt>
-                  <dd>
-                    Temporarily helping a teammate defend against a screen
-                    before returning to your assignment
-                  </dd>
-                </div>
-                <div className="border-4 border-black rounded-xl p-4 bg-white hover:bg-[#f0f0f0] transition-colors">
-                  <dt className="font-bold text-lg">OVERPLAY:</dt>
-                  <dd>
-                    Positioning yourself on one side of an offensive player to
-                    deny them the ball
-                  </dd>
-                </div>
-              </dl>
-            </div>
-          </div>
-        </div>
       ),
     },
   ];

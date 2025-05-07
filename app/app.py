@@ -1,9 +1,9 @@
 from flask import Flask, request, jsonify
-from flask_cors import CORS 
+from flask_cors import CORS
 from datetime import datetime
 
 app = Flask(__name__)
-CORS(app)     
+CORS(app)
 # In-memory storage for user interactions
 LESSON_ACTIVITIES = []
 QUIZ_ANSWERS = []
@@ -15,9 +15,12 @@ QUESTIONS = [
         'type': 'matching',
         'question': 'MATCH THE DEFENSE TO ITS DESCRIPTION',
         'items': [
-            { 'term': 'Each player guards one opponent', 'options': ['One-on-one','Zone','Box and 1'], 'correctAnswer': 'One-on-one' },
-            { 'term': 'Guards space instead of players', 'options': ['One-on-one','Zone','Box and 1'], 'correctAnswer': 'Zone' },
-            { 'term': 'A mix: 4 in zone, 1 on star player', 'options': ['One-on-one','Zone','Box and 1'], 'correctAnswer': 'Box and 1' }
+            {'term': 'Each player guards one opponent', 'options': [
+                'One-on-one', 'Zone', 'Box and 1'], 'correctAnswer': 'One-on-one'},
+            {'term': 'Guards space instead of players', 'options': [
+                'One-on-one', 'Zone', 'Box and 1'], 'correctAnswer': 'Zone'},
+            {'term': 'A mix: 4 in zone, 1 on star player', 'options': [
+                'One-on-one', 'Zone', 'Box and 1'], 'correctAnswer': 'Box and 1'}
         ],
         'points': 20
     },
@@ -25,7 +28,7 @@ QUESTIONS = [
         'id': 1,
         'type': 'multiple-choice-explanation',
         'question': 'YOU ARE COACHING A TEAM WITH SLOW DEFENDERS. WHICH STRATEGY DO YOU USE AND WHY?',
-        'options': ['Box and 1','Zone','One-on-one'],
+        'options': ['Box and 1', 'Zone', 'One-on-one'],
         'correct': 'Zone',
         'points': 20
     },
@@ -33,7 +36,7 @@ QUESTIONS = [
         'id': 2,
         'type': 'multiple-choice-explanation',
         'question': 'YOUR OPPONENT HAS A SUPERSTAR. WHICH STRATEGY DO YOU USE AND WHY?',
-        'options': ['Box and 1','Zone','One-on-one'],
+        'options': ['Box and 1', 'Zone', 'One-on-one'],
         'correct': 'Box and 1',
         'points': 20
     },
@@ -42,10 +45,10 @@ QUESTIONS = [
         'type': 'multiple-select',
         'question': 'WHAT ARE THE PROS OF ONE-ON-ONE DEFENSE?',
         'options': [
-            'Great for team with slow or undersized players','Coverage Flexibility',
-            'Builds individual accountability','High pressure on ball-handler'
+            'Great for team with slow or undersized players', 'Coverage Flexibility',
+            'Builds individual accountability', 'High pressure on ball-handler'
         ],
-        'correct': ['Builds individual accountability','High pressure on ball-handler'],
+        'correct': ['Builds individual accountability', 'High pressure on ball-handler'],
         'points': 20
     },
     {
@@ -53,8 +56,8 @@ QUESTIONS = [
         'type': 'multiple-select',
         'question': 'WHAT ARE THE PROS OF ZONE DEFENSE?',
         'options': [
-            'Lockdown players','Great for team with slow or undersized players',
-            'Builds individual accountability','High pressure on ball-handler'
+            'Lockdown players', 'Great for team with slow or undersized players',
+            'Builds individual accountability', 'High pressure on ball-handler'
         ],
         'correct': ['Great for team with slow or undersized players'],
         'points': 20
@@ -62,11 +65,13 @@ QUESTIONS = [
 ]
 TOTAL_QUESTIONS = len(QUESTIONS)
 
+
 @app.route('/')
 def home():
     return jsonify({'message': 'Welcome to Defensive IQ', 'start': '/learn/1'})
 
-@app.route('/learn/<int:lesson_id>', methods=['GET','POST'])
+
+@app.route('/learn/<int:lesson_id>', methods=['GET', 'POST'])
 def learn(lesson_id):
     if request.method == 'POST':
         data = request.get_json() or {}
@@ -78,18 +83,20 @@ def learn(lesson_id):
         return jsonify({'next': f'/learn/{lesson_id+1}'})
     return jsonify({'lesson_id': lesson_id, 'content': f'Content for lesson {lesson_id}'})
 
-@app.route('/quiz/<int:question_id>', methods=['GET','POST'])
+
+@app.route('/quiz/<int:question_id>', methods=['GET', 'POST'])
 def quiz(question_id):
     if request.method == 'POST':
         data = request.get_json() or {}
         ans = data.get('answer')
         q = next((q for q in QUESTIONS if q['id'] == question_id), None)
+        print(q)
         correct_flag = False
         if q:
             if q['type'] == 'multiple-select':
                 correct_flag = set(ans) == set(q['correct'])
             elif q['type'] == 'matching':
-                correct_items = [item['correct'] for item in q['items']]
+                correct_items = [item['correctAnswer'] for item in q['items']]
                 correct_flag = ans == correct_items
             else:
                 correct_flag = ans == q['correct']
@@ -117,9 +124,11 @@ def result():
     score = sum(1 for r in QUIZ_ANSWERS if r['correct'])
     return jsonify({'score': score, 'total': total})
 
+
 @app.route('/quiz/count', methods=['GET'])
 def quiz_count():
     return jsonify({'count': TOTAL_QUESTIONS})
+
 
 if __name__ == '__main__':
     app.run(debug=True)

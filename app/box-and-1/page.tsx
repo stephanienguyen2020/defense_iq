@@ -588,8 +588,8 @@ export default function BoxAndOnePage() {
                   <dd>The four players in zone formation</dd>
                 </div>
                 <div className="border-4 border-black rounded-xl p-4 bg-white hover:bg-[#f0f0f0] transition-colors">
-                  <dt className="font-bold text-lg">STAR DENIAL:</dt>
-                  <dd>Preventing the star player from receiving the ball</dd>
+                  <dt className="font-bold text-lg">STAR PLAYER:</dt>
+                  <dd>The primary offensive threat targeted by the chaser</dd>
                 </div>
               </dl>
             </div>
@@ -600,7 +600,6 @@ export default function BoxAndOnePage() {
     {
       title: "WHEN TO USE BOX AND 1",
       content: (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="md:col-span-2 space-y-6">
             <p className="text-lg">The Box and 1 defense is particularly effective in specific situations:</p>
 
@@ -703,27 +702,6 @@ export default function BoxAndOnePage() {
               </div>
             </div>
           </div>
-
-          <div className="md:col-span-1">
-            <div className="neo-card bg-gray-100 h-full">
-              <h2 className="font-bold text-xl mb-4">KEY TERMINOLOGY:</h2>
-              <dl className="space-y-4">
-                <div className="border-4 border-black rounded-xl p-4 bg-white hover:bg-[#f0f0f0] transition-colors">
-                  <dt className="font-bold text-lg">DEFENSIVE ROTATION:</dt>
-                  <dd>How box defenders shift positions to help the chaser</dd>
-                </div>
-                <div className="border-4 border-black rounded-xl p-4 bg-white hover:bg-[#f0f0f0] transition-colors">
-                  <dt className="font-bold text-lg">HELP DEFENSE:</dt>
-                  <dd>Supporting the chaser when the star player breaks free</dd>
-                </div>
-                <div className="border-4 border-black rounded-xl p-4 bg-white hover:bg-[#f0f0f0] transition-colors">
-                  <dt className="font-bold text-lg">STAR PLAYER:</dt>
-                  <dd>The primary offensive threat targeted by the chaser</dd>
-                </div>
-              </dl>
-            </div>
-          </div>
-        </div>
       ),
     },
     {

@@ -125,6 +125,9 @@ export default function QuizPage() {
         ? q.items!.map((_, i) => answers[`${currentQuestion}-${i}`])
         : answers[currentQuestion];
 
+    console.log(payload);
+    
+
     fetch(`http://127.0.0.1:5000/quiz/${currentQuestion}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },

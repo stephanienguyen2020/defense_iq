@@ -235,6 +235,10 @@ export default function ZonePage() {
     "2-3"
   );
   const courtRef = useRef<HTMLDivElement>(null);
+  const handleConcernSelect = (concern: string) => {
+    setSelectedConcern(concern);
+    setShowConcernAnswer(true);
+  };
 
   const handleAreaClick = (area: string) => {
     setActiveZoneArea(area === activeZoneArea ? null : area);
@@ -458,17 +462,15 @@ export default function ZonePage() {
               <h2 className="font-bold text-xl mb-4">KEY TERMINOLOGY:</h2>
               <dl className="space-y-4">
                 <div className="border-4 border-black rounded-xl p-4 bg-white hover:bg-[#f0f0f0] transition-colors">
-                  <dt className="font-bold text-lg">ZONE ROTATION:</dt>
+                  <dt className="font-bold text-lg">ZONE ASSIGNMENT:</dt>
                   <dd>
-                    How defenders shift positions as the ball moves around the
-                    perimeter
+                    The specific area of the court that a defender is responsible for covering and protecting.
                   </dd>
                 </div>
                 <div className="border-4 border-black rounded-xl p-4 bg-white hover:bg-[#f0f0f0] transition-colors">
-                  <dt className="font-bold text-lg">OVERLOAD:</dt>
+                  <dt className="font-bold text-lg">ZONE COLLAPSE:</dt>
                   <dd>
-                    An offensive strategy that puts multiple players on one side
-                    of the court to stress a zone
+                    When defenders temporarily shrink toward the basket to help stop drives or rebound, then reset.
                   </dd>
                 </div>
                 <div className="border-4 border-black rounded-xl p-4 bg-white hover:bg-[#f0f0f0] transition-colors">
@@ -826,6 +828,12 @@ export default function ZonePage() {
                   </dd>
                 </div>
                 <div className="border-4 border-black rounded-xl p-4 bg-white hover:bg-[#f0f0f0] transition-colors">
+                  <dt className="font-bold text-lg">REBOUNDING COVERAGE:</dt>
+                  <dd>
+                    Area to assignment of responsibilities and positioning that players have to secure a rebound after a shot attempt
+                  </dd>
+                </div>
+                <div className="border-4 border-black rounded-xl p-4 bg-white hover:bg-[#f0f0f0] transition-colors">
                   <dt className="font-bold text-lg">HIGH POST:</dt>
                   <dd>
                     The area near the free throw line, often a weak spot in zone
@@ -841,7 +849,6 @@ export default function ZonePage() {
     {
       title: "PROS & CONS",
       content: (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="md:col-span-2 space-y-6">
             <div className="grid md:grid-cols-2 gap-6">
               <div className="neo-card">
@@ -932,7 +939,7 @@ export default function ZonePage() {
                       : ""
                   }`}
                   onClick={() => handleConcernSelect("vulnerable")}
-                  disabled={showConcernAnswer}
+                  // disabled={showConcernAnswer}
                 >
                   VULNERABLE TO OUTSIDE SHOOTING
                   {selectedConcern === "vulnerable" && showConcernAnswer && (
@@ -954,12 +961,12 @@ export default function ZonePage() {
                       : ""
                   }`}
                   onClick={() => handleConcernSelect("rebound")}
-                  disabled={showConcernAnswer}
+                  // disabled={showConcernAnswer}
                 >
                   DIFFICULT TO REBOUND
                   {selectedConcern === "rebound" && showConcernAnswer && (
                     <div className="flex justify-center mt-2">
-                      <X size={24} className="text-white" strokeWidth={3} />
+                      <X size={24} className="text-black" strokeWidth={3} />
                     </div>
                   )}
                 </button>
@@ -972,12 +979,12 @@ export default function ZonePage() {
                       : ""
                   }`}
                   onClick={() => handleConcernSelect("demanding")}
-                  disabled={showConcernAnswer}
+                  // disabled={showConcernAnswer}
                 >
                   TOO PHYSICALLY DEMANDING
                   {selectedConcern === "demanding" && showConcernAnswer && (
                     <div className="flex justify-center mt-2">
-                      <X size={24} className="text-white" strokeWidth={3} />
+                      <X size={24} className="text-black" strokeWidth={3} />
                     </div>
                   )}
                 </button>
@@ -990,47 +997,18 @@ export default function ZonePage() {
                       : ""
                   }`}
                   onClick={() => handleConcernSelect("communicate")}
-                  disabled={showConcernAnswer}
+                  // disabled={showConcernAnswer}
                 >
                   HARD TO COMMUNICATE
                   {selectedConcern === "communicate" && showConcernAnswer && (
                     <div className="flex justify-center mt-2">
-                      <X size={24} className="text-white" strokeWidth={3} />
+                      <X size={24} className="text-black" strokeWidth={3} />
                     </div>
                   )}
                 </button>
               </div>
             </div>
           </div>
-
-          <div className="md:col-span-1">
-            <div className="neo-card bg-gray-100 h-full">
-              <h2 className="font-bold text-xl mb-4">KEY TERMINOLOGY:</h2>
-              <dl className="space-y-4">
-                <div className="border-4 border-black rounded-xl p-4 bg-white hover:bg-[#f0f0f0] transition-colors">
-                  <dt className="font-bold text-lg">ZONE TRAP:</dt>
-                  <dd>
-                    When two zone defenders converge to trap a ball handler
-                  </dd>
-                </div>
-                <div className="border-4 border-black rounded-xl p-4 bg-white hover:bg-[#f0f0f0] transition-colors">
-                  <dt className="font-bold text-lg">FLASH:</dt>
-                  <dd>
-                    An offensive move where a player quickly cuts to an open
-                    spot in the zone
-                  </dd>
-                </div>
-                <div className="border-4 border-black rounded-xl p-4 bg-white hover:bg-[#f0f0f0] transition-colors">
-                  <dt className="font-bold text-lg">MATCHUP ZONE:</dt>
-                  <dd>
-                    A hybrid defense that combines zone principles with
-                    man-to-man concepts
-                  </dd>
-                </div>
-              </dl>
-            </div>
-          </div>
-        </div>
       ),
     },
   ];
