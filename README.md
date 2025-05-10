@@ -45,6 +45,11 @@ npm run dev
 yarn dev
 ```
 
+4. Run the backend:
+```bash
+python app/app.py
+```
+
 4. Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ## Project Structure
